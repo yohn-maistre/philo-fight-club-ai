@@ -27,11 +27,11 @@ export const PhilosopherResponse = ({ philosopher, onContinue, onNewChallenge }:
   const response = responses[philosopher as keyof typeof responses];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <Badge className="bg-green-500/10 border border-green-500/20 text-green-400 text-lg px-6 py-3 mb-6 backdrop-blur-sm">
+          <Badge className="bg-green-600/15 border border-green-500/30 text-green-400 text-lg px-6 py-3 mb-6 backdrop-blur-sm">
             ✅ CHALLENGE RESPONDED TO
           </Badge>
           <h1 className="text-3xl font-bold text-white mb-4">
@@ -41,7 +41,7 @@ export const PhilosopherResponse = ({ philosopher, onContinue, onNewChallenge }:
 
         {/* Philosopher Avatar & Response */}
         <div className="text-center mb-12">
-          <div className="w-40 h-40 mx-auto mb-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30">
+          <div className="w-40 h-40 mx-auto mb-8 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-full flex items-center justify-center shadow-lg border border-blue-500/20 backdrop-blur-sm">
             <div className="text-5xl">
               {philosopher === 'Nietzsche' ? '🔥' : '💭'}
             </div>
@@ -55,7 +55,7 @@ export const PhilosopherResponse = ({ philosopher, onContinue, onNewChallenge }:
 
         {/* Response Content - Fixed Height */}
         <div className="mb-12">
-          <div className="bg-slate-800/30 backdrop-blur-sm rounded-3xl p-10 min-h-[300px] flex items-center justify-center">
+          <div className="bg-slate-800/20 backdrop-blur-sm rounded-3xl p-10 min-h-[300px] flex items-center justify-center border border-slate-700/30">
             <div className="text-center max-w-4xl">
               <p className="text-slate-200 text-xl leading-relaxed mb-8">
                 "{response.quote}"
@@ -71,7 +71,7 @@ export const PhilosopherResponse = ({ philosopher, onContinue, onNewChallenge }:
         <div className="flex justify-center gap-6">
           <Button 
             onClick={onNewChallenge}
-            className="bg-slate-800/50 hover:bg-slate-700/70 border border-slate-600/50 hover:border-slate-500/70 text-white font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg"
+            className="bg-slate-800/30 hover:bg-slate-700/40 border border-slate-600/30 hover:border-slate-500/40 text-slate-300 hover:text-white font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg"
           >
             <Mic className="h-5 w-5 mr-2" />
             Follow-up Challenge
@@ -79,7 +79,7 @@ export const PhilosopherResponse = ({ philosopher, onContinue, onNewChallenge }:
           
           <Button 
             onClick={onContinue}
-            className="bg-blue-600/20 hover:bg-blue-500/30 border border-blue-500/30 hover:border-blue-400/50 text-blue-300 hover:text-blue-200 font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105"
+            className="bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 hover:border-blue-400/40 text-blue-300 hover:text-blue-200 font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg"
           >
             Continue Debate
             <ArrowRight className="h-5 w-5 ml-2" />

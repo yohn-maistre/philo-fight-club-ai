@@ -89,10 +89,10 @@ export const InterruptInterface = ({
       {/* Main Content */}
       <div className="px-6 pb-6">
         <div className="max-w-4xl mx-auto">
-          {/* Challenge Status - Modernized */}
+          {/* Challenge Status - Reduced glow */}
           <div className="text-center mb-12">
             <div className="relative mb-8">
-              <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 via-orange-500/20 to-red-500/20 rounded-3xl blur-xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-orange-500/10 to-red-500/10 rounded-3xl blur-lg"></div>
               <div className="relative bg-gradient-to-r from-red-500/10 to-orange-500/10 backdrop-blur-sm border border-red-500/20 rounded-3xl px-8 py-6">
                 <div className="flex items-center justify-center gap-3 mb-2">
                   <Zap className="h-6 w-6 text-red-400 animate-pulse" />
@@ -117,8 +117,8 @@ export const InterruptInterface = ({
           <div className="mb-12">
             <div className="text-center mb-8">
               <div className="relative w-48 h-48 mx-auto mb-8">
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500/30 to-orange-500/30 rounded-full blur-2xl animate-pulse"></div>
-                <div className="relative w-full h-full bg-gradient-to-br from-red-500/20 to-orange-500/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-red-500/30 shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-full blur-lg animate-pulse"></div>
+                <div className="relative w-full h-full bg-gradient-to-br from-red-500/15 to-orange-500/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-red-500/30 shadow-2xl">
                   <ModernMicIcon className="h-20 w-20 text-white drop-shadow-lg" />
                 </div>
               </div>
@@ -151,18 +151,18 @@ export const InterruptInterface = ({
               </div>
             </div>
             
-            {/* Control Buttons */}
+            {/* Control Buttons - Reduced glow */}
             <div className="flex justify-center gap-6">
               <Button 
                 onClick={handleFinishChallenge} 
-                className="bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 hover:border-green-400/50 text-green-300 hover:text-green-200 font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-green-500/10"
+                className="bg-green-600/15 hover:bg-green-600/25 border border-green-500/30 hover:border-green-400/40 text-green-300 hover:text-green-200 font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-green-500/5"
               >
                 <Square className="h-5 w-5 mr-2" />
                 Finish Challenge
               </Button>
               
               <Button 
-                className="bg-slate-800/30 hover:bg-slate-700/50 border border-slate-600/30 hover:border-slate-500/50 text-slate-300 hover:text-white font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                className="bg-slate-800/30 hover:bg-slate-700/40 border border-slate-600/30 hover:border-slate-500/40 text-slate-300 hover:text-white font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:shadow-lg"
               >
                 🔄 Continue Speaking
               </Button>
