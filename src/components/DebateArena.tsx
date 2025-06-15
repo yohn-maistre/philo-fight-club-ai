@@ -292,7 +292,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             </div>
           </div>
 
-          {/* Circular Participants - More Spacious */}
+          {/* Circular Participants - More Mobile Friendly */}
           <div className="mb-16">
             <CircularParticipants 
               currentSpeaker={currentSpeaker}

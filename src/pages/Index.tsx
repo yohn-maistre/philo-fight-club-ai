@@ -301,7 +301,7 @@ const Index = () => {
 
   const filteredBattles = selectedCategory !== null 
     ? availableBattles.filter(battle => battle.category === categoryMap[selectedCategory as keyof typeof categoryMap])
-    : availableBattles;
+    : availableBattles.filter(battle => battle.category === "classic");
 
   const handleEnterArena = () => {
     setCurrentView('battles');
