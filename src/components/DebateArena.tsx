@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +20,35 @@ export const DebateArena = ({
   const [debateTime, setDebateTime] = useState(0);
   const [currentStatement, setCurrentStatement] = useState("");
   const [showResponse, setShowResponse] = useState(false);
+  const [philosopherExpressions, setPhilosopherExpressions] = useState<{[key: string]: string}>({});
+
+  // Comical expressions that rotate randomly
+  const absurdExpressions = [
+    "adjusting his toga dramatically",
+    "counting invisible sheep",
+    "practicing air guitar solos",
+    "doing tiny desk push-ups",
+    "organizing his beard hair by length",
+    "sketching doodles of cats",
+    "humming show tunes quietly",
+    "tapping morse code with his fingers",
+    "doing interpretive dance moves",
+    "practicing magic tricks",
+    "folding origami cranes",
+    "shadow boxing with wisdom",
+    "playing invisible chess",
+    "conducting an invisible orchestra",
+    "doing breathing exercises",
+    "stretching like a cat",
+    "swinging his feet while listening",
+    "sitting grumpily with arms crossed",
+    "twirling his mustache thoughtfully",
+    "cleaning his fingernails",
+    "stacking imaginary blocks",
+    "doing neck rolls",
+    "practicing facial expressions in a mirror",
+    "knitting an invisible scarf"
+  ];
 
   // Get debate config based on ID
   const getDebateConfig = (id: string) => {
@@ -64,6 +92,28 @@ export const DebateArena = ({
   };
 
   const debateConfig = getDebateConfig(debateId);
+
+  // Update expressions every 3-5 seconds
+  useEffect(() => {
+    const updateExpressions = () => {
+      const newExpressions: {[key: string]: string} = {};
+      debateConfig.philosophers.forEach(philosopher => {
+        const randomExpression = absurdExpressions[Math.floor(Math.random() * absurdExpressions.length)];
+        newExpressions[philosopher.name] = randomExpression;
+      });
+      setPhilosopherExpressions(newExpressions);
+    };
+
+    // Initial expressions
+    updateExpressions();
+
+    // Update expressions every 3-5 seconds
+    const interval = setInterval(() => {
+      updateExpressions();
+    }, Math.random() * 2000 + 3000); // 3-5 seconds
+
+    return () => clearInterval(interval);
+  }, [debateConfig.philosophers, absurdExpressions]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -149,6 +199,46 @@ export const DebateArena = ({
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2 font-serif">{debateConfig.title}</h1>
             <p className="text-slate-300 text-lg">"{debateConfig.topic}"</p>
+          </div>
+
+          {/* Speakers Overview */}
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-white mb-4 text-center">Debate Participants</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              {debateConfig.philosophers.map((philosopher, index) => {
+                const isActive = (currentSpeaker === 'philosopher1' && index === 0) || (currentSpeaker === 'philosopher2' && index === 1);
+                return (
+                  <div key={philosopher.name} className={`bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border transition-all duration-300 ${
+                    isActive 
+                      ? 'border-blue-500/50 shadow-lg shadow-blue-500/10' 
+                      : 'border-slate-700/30'
+                  }`}>
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">
+                        {philosopher.color === 'emerald' && '💭'}
+                        {philosopher.color === 'red' && '🔥'}
+                        {philosopher.color === 'blue' && '🧠'}
+                        {philosopher.color === 'purple' && '⚡'}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-white">{philosopher.name}</h4>
+                          {isActive && (
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
+                              SPEAKING
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-slate-400 text-sm mb-2">{philosopher.subtitle}</p>
+                        <p className="text-slate-300 text-xs italic">
+                          {philosopherExpressions[philosopher.name] || "pondering existence"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Speaker Section */}
