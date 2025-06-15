@@ -3,100 +3,90 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface LiveTrackerProps {
-  socrates: {
-    questions: number;
-    gotcha: number;
+  philosopher1: {
+    name: string;
+    color: string;
+    points: number;
+    actions: number;
   };
-  nietzsche: {
-    assertions: number;
-    fallacies: number;
+  philosopher2: {
+    name: string;
+    color: string;
+    points: number;
+    actions: number;
   };
-  moderator: {
-    questionsAsked: number;
-    stumpedMoments: number;
+  yourScore: {
+    challenges: number;
+    points: number;
   };
 }
 
-export const LiveTracker = ({ socrates, nietzsche, moderator }: LiveTrackerProps) => {
+export const LiveTracker = ({ philosopher1, philosopher2, yourScore }: LiveTrackerProps) => {
+  const getColorClasses = (color: string) => {
+    const colorMap = {
+      emerald: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
+      red: "bg-red-500/10 border-red-500/30 text-red-400",
+      blue: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+      purple: "bg-purple-500/10 border-purple-500/30 text-purple-400"
+    };
+    return colorMap[color as keyof typeof colorMap] || "bg-slate-500/10 border-slate-500/30 text-slate-400";
+  };
+
   return (
-    <Card className="bg-slate-800/50 border-slate-700">
+    <Card className="bg-slate-800/40 border-slate-700/50 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="text-white text-center font-serif">📊 Live Debate Tracker</CardTitle>
+        <CardTitle className="text-white text-center font-serif text-lg">Live Debate Tracker</CardTitle>
       </CardHeader>
       <CardContent className="p-4">
         <div className="space-y-4">
-          {/* Socrates Stats */}
-          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+          {/* Philosopher 1 */}
+          <div className={`p-4 rounded-lg border ${getColorClasses(philosopher1.color)}`}>
             <div className="text-center mb-3">
-              <h3 className="font-bold text-white font-serif">SOCRATES</h3>
-              <Badge variant="secondary" className="text-xs">The Questioner</Badge>
+              <h3 className="font-bold text-white font-serif text-sm">{philosopher1.name.toUpperCase()}</h3>
             </div>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-300">🔹 Logical Questions:</span>
-                <span className="text-emerald-400 font-bold">{socrates.questions}</span>
+                <span className="text-slate-300">Arguments:</span>
+                <span className="font-bold">{philosopher1.actions}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-300">🔹 Gotcha Moments:</span>
-                <span className="text-emerald-400 font-bold">{socrates.gotcha}</span>
+                <span className="text-slate-300">Strength:</span>
+                <span className="font-bold">{philosopher1.points}</span>
               </div>
             </div>
           </div>
 
-          {/* Moderator Stats */}
-          <div className="p-4 bg-slate-600/20 border border-slate-500/30 rounded-lg">
-            <div className="text-center mb-3">
-              <h3 className="font-bold text-white font-serif">MODERATOR</h3>
-              <Badge variant="secondary" className="text-xs">Debate Host</Badge>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-300">🎯 Questions Asked:</span>
-                <span className="text-slate-400 font-bold">{moderator.questionsAsked}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-300">🎯 Stumped Moments:</span>
-                <span className="text-slate-400 font-bold">{moderator.stumpedMoments}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Nietzsche Stats */}
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <div className="text-center mb-3">
-              <h3 className="font-bold text-white font-serif">NIETZSCHE</h3>
-              <Badge variant="secondary" className="text-xs">The Hammer</Badge>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-300">🔸 Assertions Made:</span>
-                <span className="text-red-400 font-bold">{nietzsche.assertions}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-300">🔸 Fallacies Detected:</span>
-                <span className="text-red-400 font-bold">{nietzsche.fallacies}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Your Performance */}
+          {/* Your Score */}
           <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
             <div className="text-center mb-3">
-              <h3 className="font-bold text-white font-serif">YOUR SCORE</h3>
-              <Badge className="bg-yellow-600 text-white">Socratic Challenger</Badge>
+              <h3 className="font-bold text-white font-serif text-sm">YOUR CHALLENGES</h3>
+              <Badge className="bg-yellow-600 text-white text-xs">Socratic Method</Badge>
             </div>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-300">⚡ Total Points:</span>
-                <span className="text-yellow-400 font-bold">247</span>
+                <span className="text-slate-300">Questions Asked:</span>
+                <span className="text-yellow-400 font-bold">{yourScore.challenges}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-300">🎯 Challenges Made:</span>
-                <span className="text-yellow-400 font-bold">3</span>
+                <span className="text-slate-300">Impact Points:</span>
+                <span className="text-yellow-400 font-bold">{yourScore.points}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Philosopher 2 */}
+          <div className={`p-4 rounded-lg border ${getColorClasses(philosopher2.color)}`}>
+            <div className="text-center mb-3">
+              <h3 className="font-bold text-white font-serif text-sm">{philosopher2.name.toUpperCase()}</h3>
+            </div>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-300">Arguments:</span>
+                <span className="font-bold">{philosopher2.actions}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-300">🏆 Level:</span>
-                <span className="text-yellow-400 font-bold">Novice</span>
+                <span className="text-slate-300">Strength:</span>
+                <span className="font-bold">{philosopher2.points}</span>
               </div>
             </div>
           </div>
