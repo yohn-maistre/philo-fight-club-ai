@@ -4,10 +4,13 @@ import { HeroSection } from "@/components/HeroSection";
 import { BattleCard } from "@/components/BattleCard";
 import { DebateArena } from "@/components/DebateArena";
 import { MarqueeAnimation } from "@/components/ui/marquee-effect";
+import { ExpandableTabs } from "@/components/ui/expandable-tabs";
+import { User, Zap, Sparkles, Bell } from "lucide-react";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'battles' | 'arena'>('landing');
   const [selectedBattle, setSelectedBattle] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(0);
 
   const availableBattles = [
     // Classic Philosophy
@@ -30,7 +33,8 @@ const Index = () => {
           color: "red" 
         }
       ],
-      duration: "~15 min"
+      duration: "~15 min",
+      category: "classic"
     },
     {
       id: "free-will-debate",
@@ -51,7 +55,8 @@ const Index = () => {
           color: "purple" 
         }
       ],
-      duration: "~12 min"
+      duration: "~12 min",
+      category: "classic"
     },
     {
       id: "knowledge-debate",
@@ -72,7 +77,8 @@ const Index = () => {
           color: "purple" 
         }
       ],
-      duration: "~18 min"
+      duration: "~18 min",
+      category: "classic"
     },
     
     // Contemporary & Highly Relevant
@@ -95,7 +101,8 @@ const Index = () => {
           color: "red" 
         }
       ],
-      duration: "~20 min"
+      duration: "~20 min",
+      category: "modern"
     },
     {
       id: "capitalism-debate",
@@ -116,7 +123,8 @@ const Index = () => {
           color: "red" 
         }
       ],
-      duration: "~25 min"
+      duration: "~25 min",
+      category: "modern"
     },
     {
       id: "privacy-surveillance-debate",
@@ -137,7 +145,8 @@ const Index = () => {
           color: "emerald" 
         }
       ],
-      duration: "~16 min"
+      duration: "~16 min",
+      category: "modern"
     },
     
     // Provocative Modern Issues
@@ -160,7 +169,8 @@ const Index = () => {
           color: "blue" 
         }
       ],
-      duration: "~14 min"
+      duration: "~14 min",
+      category: "provocative"
     },
     {
       id: "gender-nature-debate",
@@ -181,7 +191,8 @@ const Index = () => {
           color: "red" 
         }
       ],
-      duration: "~22 min"
+      duration: "~22 min",
+      category: "provocative"
     },
     {
       id: "climate-progress-debate",
@@ -202,7 +213,8 @@ const Index = () => {
           color: "blue" 
         }
       ],
-      duration: "~19 min"
+      duration: "~19 min",
+      category: "provocative"
     },
     
     // Wild Cards & Cultural Battles
@@ -225,7 +237,8 @@ const Index = () => {
           color: "red" 
         }
       ],
-      duration: "~17 min"
+      duration: "~17 min",
+      category: "wild"
     },
     {
       id: "social-media-humanity-debate",
@@ -246,7 +259,8 @@ const Index = () => {
           color: "purple" 
         }
       ],
-      duration: "~13 min"
+      duration: "~13 min",
+      category: "wild"
     },
     {
       id: "death-meaning-debate",
@@ -267,9 +281,28 @@ const Index = () => {
           color: "emerald" 
         }
       ],
-      duration: "~21 min"
+      duration: "~21 min",
+      category: "wild"
     }
   ];
+
+  const categoryTabs = [
+    { title: "Classic", icon: User },
+    { title: "Modern", icon: Zap },
+    { title: "Provocative", icon: Sparkles },
+    { title: "Wild Cards", icon: Bell }
+  ];
+
+  const categoryMap = {
+    0: "classic",
+    1: "modern", 
+    2: "provocative",
+    3: "wild"
+  };
+
+  const filteredBattles = selectedCategory !== null 
+    ? availableBattles.filter(battle => battle.category === categoryMap[selectedCategory as keyof typeof categoryMap])
+    : availableBattles;
 
   const handleEnterArena = () => {
     setCurrentView('battles');
@@ -306,11 +339,21 @@ const Index = () => {
             </button>
             <h1 className="text-4xl font-bold text-white mb-4 font-serif">Choose Your Philosophical Battle</h1>
             <p className="text-slate-300 text-lg mb-2">Select a debate to join as Socratic challenger</p>
-            <p className="text-slate-400 text-sm">From timeless philosophy to today's most contentious issues</p>
+            <p className="text-slate-400 text-sm mb-8">🧠 Socrates moderates all debates with wisdom and wit</p>
+            
+            {/* Category Tabs */}
+            <div className="flex justify-center mb-8">
+              <ExpandableTabs 
+                tabs={categoryTabs}
+                onChange={setSelectedCategory}
+                activeColor="text-yellow-400"
+                className="bg-slate-800/30"
+              />
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {availableBattles.map((battle) => (
+            {filteredBattles.map((battle) => (
               <BattleCard
                 key={battle.id}
                 {...battle}
