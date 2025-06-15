@@ -1,6 +1,6 @@
 
 import { motion } from "framer-motion";
-import { RoundSpinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/spinner";
 
 interface LoadingScreenProps {
   message?: string;
@@ -41,7 +41,7 @@ export const LoadingScreen = ({ message = "Preparing the arena..." }: LoadingScr
           className="mb-8"
         >
           <div className="flex justify-center mb-4">
-            <RoundSpinner size="lg" color="slate" />
+            <Spinner size="lg" color="slate" />
           </div>
           
           <motion.div
