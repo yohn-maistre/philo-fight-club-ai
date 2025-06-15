@@ -1,15 +1,16 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Mic, Square, Clock, Target, Zap } from "lucide-react";
+import { ArrowLeft, Mic, Clock, Target, Zap } from "lucide-react";
 import { InterruptInterface } from "@/components/InterruptInterface";
-import { LiveTracker } from "@/components/LiveTracker";
 import { PhilosopherResponse } from "@/components/PhilosopherResponse";
+
 interface DebateArenaProps {
   debateId: string;
   onBack: () => void;
 }
+
 export const DebateArena = ({
   debateId,
   onBack
@@ -61,13 +62,16 @@ export const DebateArena = ({
     };
     return configs[id as keyof typeof configs] || configs["morality-debate"];
   };
+
   const debateConfig = getDebateConfig(debateId);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setDebateTime(prev => prev + 1);
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
   useEffect(() => {
     if (!isInterrupted && !showResponse) {
       const speaker = currentSpeaker;
@@ -77,153 +81,143 @@ export const DebateArena = ({
       }
     }
   }, [currentSpeaker, isInterrupted, showResponse, debateConfig]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
   const handleInterrupt = () => {
     setIsInterrupted(true);
     setCurrentSpeaker('user');
   };
+
   const handleChallengeComplete = (challenge: string) => {
     setChallengeCount(prev => prev + 1);
     setIsInterrupted(false);
     setShowResponse(true);
   };
+
   const handleContinueDebate = () => {
     setShowResponse(false);
     setCurrentSpeaker(currentSpeaker === 'philosopher1' ? 'philosopher2' : 'philosopher1');
   };
+
   if (isInterrupted) {
     const activePhilosopher = currentSpeaker === 'philosopher1' ? debateConfig.philosophers[0] : debateConfig.philosophers[1];
     return <InterruptInterface philosopher={activePhilosopher.name} onChallengeComplete={handleChallengeComplete} onBack={() => setIsInterrupted(false)} />;
   }
+
   if (showResponse) {
     const activePhilosopher = currentSpeaker === 'philosopher1' ? debateConfig.philosophers[0] : debateConfig.philosophers[1];
     return <PhilosopherResponse philosopher={activePhilosopher.name} onContinue={handleContinueDebate} onNewChallenge={() => setIsInterrupted(true)} />;
   }
+
   const activePhilosopher = currentSpeaker === 'philosopher1' ? debateConfig.philosophers[0] : debateConfig.philosophers[1];
-  return <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
-      <div className="max-w-6xl mx-auto mb-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="px-6 py-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Button variant="ghost" onClick={onBack} className="text-slate-300 hover:text-white">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Battles
+            Back
           </Button>
           
-          <Badge className="bg-red-500 hover:bg-red-600 text-white animate-pulse">
-            🔴 LIVE
-          </Badge>
-        </div>
-        
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-white mb-2 font-serif">{debateConfig.title}</h1>
-          <p className="text-slate-300 text-lg mb-4">"{debateConfig.topic}"</p>
-          
-          <div className="flex items-center justify-center gap-6 text-slate-400">
+          <div className="flex items-center gap-4 text-slate-400">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              <span>Time: {formatTime(debateTime)}</span>
+              <span>{formatTime(debateTime)}</span>
             </div>
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4" />
-              <span>Challenges: {challengeCount}</span>
+              <span>{challengeCount} challenges</span>
             </div>
+            <Badge className="bg-red-500 hover:bg-red-600 text-white animate-pulse">
+              🔴 LIVE
+            </Badge>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-6">
-        {/* Main Speaking Area */}
-        <div className="lg:col-span-2">
-          <Card className="bg-slate-800/40 border-slate-700/50 mb-6 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="text-2xl">
-                    {activePhilosopher.color === 'emerald' && '💭'}
-                    {activePhilosopher.color === 'red' && '🔥'}
-                    {activePhilosopher.color === 'blue' && '🧠'}
-                    {activePhilosopher.color === 'purple' && '⚡'}
-                  </div>
-                  <h3 className="text-lg font-bold text-white font-serif">
-                    {activePhilosopher.name.toUpperCase()} SPEAKING:
-                  </h3>
+      {/* Main Content */}
+      <div className="px-6 pb-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Debate Title */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2 font-serif">{debateConfig.title}</h1>
+            <p className="text-slate-300 text-lg">"{debateConfig.topic}"</p>
+          </div>
+
+          {/* Speaker Section */}
+          <div className="mb-8">
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="text-3xl">
+                  {activePhilosopher.color === 'emerald' && '💭'}
+                  {activePhilosopher.color === 'red' && '🔥'}
+                  {activePhilosopher.color === 'blue' && '🧠'}
+                  {activePhilosopher.color === 'purple' && '⚡'}
                 </div>
-                <Badge variant="secondary" className="text-xs bg-slate-700 text-slate-300">
-                  {activePhilosopher.subtitle}
-                </Badge>
+                <h2 className="text-2xl font-bold text-white font-serif">
+                  {activePhilosopher.name.toUpperCase()}
+                </h2>
               </div>
-              
-              <div className="bg-slate-900/50 rounded-lg p-4 mb-6 min-h-[120px]">
-                <p className="text-slate-200 text-lg leading-relaxed italic">
+              <Badge variant="secondary" className="bg-slate-700 text-slate-300">
+                {activePhilosopher.subtitle}
+              </Badge>
+            </div>
+            
+            {/* Fixed Height Speech Container */}
+            <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 mb-8 min-h-[200px] flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-slate-200 text-xl leading-relaxed italic mb-6 max-w-3xl">
                   "{currentStatement}"
                 </p>
-                <div className="flex items-center mt-4">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
-                  <span className="text-slate-400 text-sm">Speaking...</span>
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-slate-400">Speaking...</span>
                 </div>
               </div>
-              
-              <div className="text-center">
-                <Button onClick={handleInterrupt} size="lg" className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold text-lg px-8 py-4 hover:transform hover:scale-105 transition-all">
-                  <Zap className="h-5 w-5 mr-2" />
-                  INTERRUPT NOW!
-                </Button>
-                <p className="text-slate-400 text-sm mt-2">Challenge their logic with your question</p>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            
+            {/* Interrupt Button */}
+            <div className="text-center">
+              <Button 
+                onClick={handleInterrupt} 
+                size="lg" 
+                className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold text-xl px-12 py-6 rounded-2xl hover:transform hover:scale-105 transition-all shadow-lg hover:shadow-red-500/20"
+              >
+                <Zap className="h-6 w-6 mr-3" />
+                INTERRUPT & CHALLENGE
+              </Button>
+              <p className="text-slate-400 text-sm mt-3">Challenge their logic with your Socratic question</p>
+            </div>
+          </div>
 
-          {/* Challenge Suggestions */}
-          <Card className="bg-slate-800/40 border-slate-700/50 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="text-xl">💭</div>
-                <h3 className="text-lg font-bold text-white">Socratic Challenge Toolkit</h3>
-              </div>
-              
-              <div className="mb-4">
-                <h4 className="text-sm font-semibold text-yellow-400 mb-2">⚡ Quick Challenges:</h4>
-                <div className="space-y-2">
-                  {["But what do you mean by that?", "Can you give a concrete example?", "What if someone disagreed?", "How do you know that's true?"].map((suggestion, index) => <button key={index} onClick={handleInterrupt} className="block w-full text-left p-2 rounded bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white text-sm transition-colors">
-                      "{suggestion}"
-                    </button>)}
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-sm font-semibold text-yellow-400 mb-2">🎯 Your Custom Challenge:</h4>
-                <div className="flex gap-2">
-                  <input type="text" placeholder="Type your philosophical challenge..." className="flex-1 bg-slate-700/50 border border-slate-600/50 rounded px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-yellow-400" />
-                  <Button onClick={handleInterrupt} className="bg-yellow-600 hover:bg-yellow-500 text-white">
-                    <Mic className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Live Tracker Sidebar */}
-        <div className="lg:col-span-1">
-          <LiveTracker philosopher1={{
-          name: debateConfig.philosophers[0].name,
-          color: debateConfig.philosophers[0].color,
-          points: 7,
-          actions: 12
-        }} philosopher2={{
-          name: debateConfig.philosophers[1].name,
-          color: debateConfig.philosophers[1].color,
-          points: 8,
-          actions: 15
-        }} yourScore={{
-          challenges: challengeCount,
-          points: challengeCount * 15
-        }} />
+          {/* Quick Challenge Suggestions */}
+          <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-bold text-white mb-2">💭 Socratic Challenge Toolkit</h3>
+              <p className="text-slate-400 text-sm">Quick challenges to get you started</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-3">
+              {["But what do you mean by that?", "Can you give a concrete example?", "What if someone disagreed?", "How do you know that's true?"].map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={handleInterrupt}
+                  className="p-3 rounded-xl bg-slate-700/30 hover:bg-slate-700/50 text-slate-300 hover:text-white text-sm transition-all hover:transform hover:scale-105 border border-slate-600/20 hover:border-slate-500/40"
+                >
+                  "{suggestion}"
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
