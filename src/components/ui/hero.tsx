@@ -44,15 +44,19 @@ const Hero = React.forwardRef<HTMLElement, HeroProps>(
       <section
         ref={ref}
         className={cn(
-          "relative z-0 flex min-h-[80vh] w-full flex-col items-center justify-center bg-slate-900",
+          "relative z-0 flex min-h-[80vh] w-full flex-col items-center justify-center overflow-hidden rounded-md bg-slate-900",
           className,
         )}
         {...props}
       >
         {gradient && (
-          <div className="absolute inset-0 flex w-full items-start justify-center">
+          <div className="absolute top-0 isolate z-0 flex w-screen flex-1 items-start justify-center">
+            {blur && (
+              <div className="absolute top-0 z-50 h-48 w-screen bg-transparent opacity-10 backdrop-blur-md" />
+            )}
+
             {/* Main glow - using yellow color for Philosophy Fight Club */}
-            <div className="absolute top-0 h-96 w-96 -translate-y-1/4 rounded-full bg-yellow-400/40 opacity-80 blur-3xl" />
+            <div className="absolute inset-auto z-50 h-36 w-[28rem] -translate-y-[-30%] rounded-full bg-yellow-400/60 opacity-80 blur-3xl" />
 
             {/* Lamp effect */}
             <motion.div
@@ -60,7 +64,7 @@ const Hero = React.forwardRef<HTMLElement, HeroProps>(
               viewport={{ once: true }}
               transition={{ ease: "easeInOut", delay: 0.3, duration: 0.8 }}
               whileInView={{ width: "16rem" }}
-              className="absolute top-0 h-36 -translate-y-1/4 rounded-full bg-yellow-400/60 blur-2xl"
+              className="absolute top-0 z-30 h-36 -translate-y-[20%] rounded-full bg-yellow-400/60 blur-2xl"
             />
 
             {/* Top line */}
@@ -69,7 +73,7 @@ const Hero = React.forwardRef<HTMLElement, HeroProps>(
               viewport={{ once: true }}
               transition={{ ease: "easeInOut", delay: 0.3, duration: 0.8 }}
               whileInView={{ width: "30rem" }}
-              className="absolute top-0 h-0.5 translate-y-8 bg-yellow-400/60"
+              className="absolute inset-auto z-50 h-0.5 -translate-y-[-10%] bg-yellow-400/60"
             />
 
             {/* Left gradient cone */}
@@ -84,7 +88,7 @@ const Hero = React.forwardRef<HTMLElement, HeroProps>(
               style={{
                 backgroundImage: `conic-gradient(var(--conic-position), var(--tw-gradient-stops))`,
               }}
-              className="absolute top-0 right-1/2 h-96 w-[30rem] bg-gradient-conic from-yellow-400/40 via-transparent to-transparent [--conic-position:from_70deg_at_center_top]"
+              className="absolute inset-auto right-1/2 h-56 overflow-visible w-[30rem] bg-gradient-conic from-yellow-400/60 via-transparent to-transparent [--conic-position:from_70deg_at_center_top]"
             />
 
             {/* Right gradient cone */}
@@ -99,7 +103,7 @@ const Hero = React.forwardRef<HTMLElement, HeroProps>(
               style={{
                 backgroundImage: `conic-gradient(var(--conic-position), var(--tw-gradient-stops))`,
               }}
-              className="absolute top-0 left-1/2 h-96 w-[30rem] bg-gradient-conic from-transparent via-transparent to-yellow-400/40 [--conic-position:from_290deg_at_center_top]"
+              className="absolute inset-auto left-1/2 h-56 w-[30rem] bg-gradient-conic from-transparent via-transparent to-yellow-400/60 [--conic-position:from_290deg_at_center_top]"
             />
           </div>
         )}
