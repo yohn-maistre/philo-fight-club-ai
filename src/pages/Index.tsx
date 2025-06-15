@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
 import { BattleCard } from "@/components/BattleCard";
 import { DebateArena } from "@/components/DebateArena";
 import { MarqueeAnimation } from "@/components/ui/marquee-effect";
 import { ExpandableTabs } from "@/components/ui/expandable-tabs";
-import { User, Zap, Sparkles, Bell } from "lucide-react";
+import { BookOpen, Zap, Flame, Skull } from "lucide-react";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'battles' | 'arena'>('landing');
@@ -287,10 +286,10 @@ const Index = () => {
   ];
 
   const categoryTabs = [
-    { title: "Classic", icon: User },
+    { title: "Classic", icon: BookOpen },
     { title: "Modern", icon: Zap },
-    { title: "Provocative", icon: Sparkles },
-    { title: "Wild Cards", icon: Bell }
+    { title: "Provocative", icon: Flame },
+    { title: "Wild Cards", icon: Skull }
   ];
 
   const categoryMap = {
@@ -340,18 +339,15 @@ const Index = () => {
             <h1 className="text-4xl font-bold text-white mb-4 font-serif">Choose Your Philosophical Battle</h1>
             <p className="text-slate-300 text-lg mb-2">Select a debate to join as Socratic challenger</p>
             
-            {/* Enhanced Socrates Moderator Indicator */}
-            <div className="flex items-center justify-center gap-3 mb-8 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl max-w-md mx-auto backdrop-blur-sm">
+            {/* Compact Socrates Moderator Badge */}
+            <div className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-gradient-to-r from-yellow-600/20 to-yellow-500/20 border border-yellow-500/30 rounded-full backdrop-blur-sm">
               <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-slate-900 text-xl font-bold">🧠</span>
+                <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+                  <span className="text-slate-900 text-sm font-bold">🧠</span>
                 </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-800 animate-pulse"></div>
+                <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border border-slate-800 animate-pulse"></div>
               </div>
-              <div className="text-left">
-                <p className="text-white font-semibold font-serif">Socrates Moderating</p>
-                <p className="text-slate-400 text-sm">Guiding wisdom & wit</p>
-              </div>
+              <span className="text-yellow-400 font-semibold text-sm font-serif">Socrates Moderating</span>
             </div>
             
             {/* Category Tabs */}

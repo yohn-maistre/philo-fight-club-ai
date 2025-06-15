@@ -35,9 +35,9 @@ const buttonVariants = {
     paddingRight: "0.75rem",
   },
   animate: (isSelected: boolean) => ({
-    gap: isSelected ? "0.75rem" : 0,
-    paddingLeft: isSelected ? "1.25rem" : "0.75rem",
-    paddingRight: isSelected ? "1.25rem" : "0.75rem",
+    gap: isSelected ? "0.5rem" : 0,
+    paddingLeft: isSelected ? "1rem" : "0.75rem",
+    paddingRight: isSelected ? "1rem" : "0.75rem",
   }),
 };
 
@@ -49,8 +49,8 @@ const spanVariants = {
 
 const transition = { 
   type: "spring" as const, 
-  bounce: 0, 
-  duration: 0.4 
+  bounce: 0.1, 
+  duration: 0.3
 };
 
 export function ExpandableTabs({
