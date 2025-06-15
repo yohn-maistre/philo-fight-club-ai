@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Mic, MicOff, Clock, Target, ChevronLeft, ChevronRight, User, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Clock, Target, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Mic, MicOff, User } from "lucide-react";
+import { AIVoiceInput } from "@/components/ui/ai-voice-input";
 import { useVapi } from "@/hooks/useVapi";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,7 +22,6 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const [currentStatement, setCurrentStatement] = useState("");
   const [philosopherExpressions, setPhilosopherExpressions] = useState<{[key: string]: string}>({});
   const [currentChallengeSet, setCurrentChallengeSet] = useState(0);
-  const [isUserMuted, setIsUserMuted] = useState(true);
   const [transcript, setTranscript] = useState<string[]>([]);
   const [transcriptExpanded, setTranscriptExpanded] = useState(false);
   const [challengesExpanded, setChallengesExpanded] = useState(false);
@@ -178,11 +178,15 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleMuteToggle = () => {
-    setIsUserMuted(!isUserMuted);
-    if (!isUserMuted) {
-      setChallengeCount(prev => prev + 1);
-    }
+  const handleVoiceStart = () => {
+    setChallengeCount(prev => prev + 1);
+    console.log('Voice recording started');
+  };
+
+  const handleVoiceStop = (duration: number) => {
+    console.log(`Voice recording stopped after ${duration} seconds`);
+    setTranscript(prev => [...prev, `You: [Spoke for ${duration} seconds]`]);
+    // Here you could integrate with the actual voice recognition
   };
 
   const handleQuickChallenge = (challenge: string) => {
@@ -345,38 +349,20 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                   </div>
                 </div>
 
-                {/* Desktop Voice Control */}
+                {/* Desktop Voice Control with AI Voice Input */}
                 <div className="text-center">
-                  <Button 
-                    onClick={handleMuteToggle} 
-                    size="lg" 
-                    disabled={!isConnected}
-                    className={`font-bold px-8 py-4 rounded-xl transition-all duration-200 hover:scale-105 ${
-                      isUserMuted 
-                        ? 'bg-gradient-to-r from-red-600/20 to-orange-500/20 hover:from-red-600/30 hover:to-orange-500/30 border border-red-500/30 text-red-300' 
-                        : 'bg-gradient-to-r from-green-600/20 to-emerald-500/20 hover:from-green-600/30 hover:to-emerald-500/30 border border-green-500/30 text-green-300'
-                    } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {isUserMuted ? (
-                      <>
-                        <MicOff className="h-5 w-5 mr-2" />
-                        UNMUTE TO SPEAK
-                      </>
-                    ) : (
-                      <>
-                        <Mic className="h-5 w-5 mr-2 animate-pulse" />
-                        YOU'RE LIVE
-                      </>
-                    )}
-                  </Button>
+                  <AIVoiceInput
+                    onStart={handleVoiceStart}
+                    onStop={handleVoiceStop}
+                    visualizerBars={48}
+                    className="text-white"
+                  />
                   <p className="text-slate-400 text-sm mt-2">
                     {error 
                       ? 'Setup required: Configure your Vapi keys' 
                       : !isConnected 
                         ? 'Connecting...' 
-                        : isUserMuted 
-                          ? 'Click to join the debate' 
-                          : 'You can now speak to the philosophers'
+                        : 'Click to join the philosophical debate'
                     }
                   </p>
                 </div>
@@ -509,38 +495,20 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                 </div>
               </div>
 
-              {/* Mobile Voice Control */}
+              {/* Mobile Voice Control with AI Voice Input */}
               <div className="text-center">
-                <Button 
-                  onClick={handleMuteToggle} 
-                  size="lg" 
-                  disabled={!isConnected}
-                  className={`font-bold px-6 py-4 rounded-2xl transition-all duration-200 hover:scale-105 w-full max-w-xs mx-auto ${
-                    isUserMuted 
-                      ? 'bg-gradient-to-r from-red-600/20 to-orange-500/20 hover:from-red-600/30 hover:to-orange-500/30 border border-red-500/30 text-red-300' 
-                      : 'bg-gradient-to-r from-green-600/20 to-emerald-500/20 hover:from-green-600/30 hover:to-emerald-500/30 border border-green-500/30 text-green-300'
-                  } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {isUserMuted ? (
-                    <>
-                      <MicOff className="h-5 w-5 mr-2" />
-                      UNMUTE TO SPEAK
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-5 w-5 mr-2 animate-pulse" />
-                      YOU'RE LIVE
-                    </>
-                  )}
-                </Button>
+                <AIVoiceInput
+                  onStart={handleVoiceStart}
+                  onStop={handleVoiceStop}
+                  visualizerBars={32}
+                  className="text-white"
+                />
                 <p className="text-slate-400 text-xs mt-2">
                   {error 
                     ? 'Setup required: Configure your Vapi keys' 
                     : !isConnected 
                       ? 'Connecting...' 
-                      : isUserMuted 
-                        ? 'Tap to join the debate' 
-                        : 'You can now speak to the philosophers'
+                      : 'Tap to join the debate'
                   }
                 </p>
               </div>
