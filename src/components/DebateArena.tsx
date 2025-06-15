@@ -44,8 +44,17 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     onMessage: (message) => {
       console.log('Received message from Vapi:', message);
       if (message.transcript) {
-        const speaker = message.transcript.speaker === 'user' ? 'You' : 'AI Philosopher';
+        const speaker = message.transcript.speaker === 'user' ? 'You' : getCurrentSpeakerName();
         setTranscript(prev => [...prev, `${speaker}: ${message.transcript!.transcript}`]);
+        
+        // Update current speaker based on transcript
+        if (message.transcript.speaker !== 'user') {
+          // Rotate speakers automatically for demo purposes
+          const speakers: ('moderator' | 'philosopher1' | 'philosopher2')[] = ['moderator', 'philosopher1', 'philosopher2'];
+          const currentIndex = speakers.indexOf(currentSpeaker as any);
+          const nextSpeaker = speakers[(currentIndex + 1) % speakers.length];
+          setCurrentSpeaker(nextSpeaker);
+        }
       }
     },
     onError: (error) => {
@@ -115,6 +124,14 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   };
 
   const debateConfig = getDebateConfig(debateId);
+
+  // Get current speaker name for transcription
+  const getCurrentSpeakerName = () => {
+    if (currentSpeaker === 'philosopher1') return debateConfig.philosophers[0].name;
+    if (currentSpeaker === 'philosopher2') return debateConfig.philosophers[1].name;
+    if (currentSpeaker === 'moderator') return debateConfig.moderator.name;
+    return 'Unknown';
+  };
 
   // Update expressions every 3-5 seconds
   useEffect(() => {
@@ -223,137 +240,115 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Header */}
-      <div className="px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+      {/* Compact Header */}
+      <div className="px-6 py-3 border-b border-slate-700/30">
+        <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={onBack} className="text-slate-300 hover:text-white">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
           
-          <div className="flex items-center gap-4 text-slate-400">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+          <div className="text-center">
+            <h1 className="text-xl font-bold text-white font-serif">{debateConfig.title}</h1>
+            <p className="text-slate-400 text-sm">"{debateConfig.topic}"</p>
+          </div>
+          
+          <div className="flex items-center gap-4 text-slate-400 text-sm">
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
               <span>{formatTime(debateTime)}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              <span>{challengeCount} challenges</span>
+            <div className="flex items-center gap-1">
+              <Target className="h-3 w-3" />
+              <span>{challengeCount}</span>
             </div>
-            <Badge className={`${isConnected ? 'bg-green-500 hover:bg-green-600' : isLoading ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-red-500 hover:bg-red-600'} text-white animate-pulse`}>
-              {isConnected ? '🟢 CONNECTED' : isLoading ? '🟡 CONNECTING' : '🔴 DISCONNECTED'}
+            <Badge className={`${isConnected ? 'bg-green-500' : isLoading ? 'bg-yellow-500' : 'bg-red-500'} text-white text-xs px-2 py-1`}>
+              {isConnected ? '🟢' : isLoading ? '🟡' : '🔴'}
             </Badge>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="px-6 pb-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Debate Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2 font-serif">{debateConfig.title}</h1>
-            <p className="text-slate-300 text-lg">"{debateConfig.topic}"</p>
-          </div>
-
-          {/* Participants Overview with Improved Styling */}
-          <div className="mb-8">
-            <h3 className="text-lg font-bold text-white mb-6 text-center">Debate Participants</h3>
-            
-            {/* Enhanced Triangular Layout */}
-            <div className="flex flex-col items-center gap-8">
-              {/* Moderator at top center - Enhanced Design */}
-              <div className="w-full max-w-lg">
-                <div className={`bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm rounded-3xl p-6 border-2 transition-all duration-500 shadow-xl ${
-                  currentSpeaker === 'moderator' 
-                    ? 'border-amber-400/60 shadow-amber-500/20 ring-4 ring-amber-400/20 scale-105' 
-                    : 'border-slate-600/40 hover:border-slate-500/50'
-                }`}>
-                  <div className="flex flex-col items-center text-center">
-                    <div className="text-4xl mb-3">⚖️</div>
-                    <div className="space-y-2">
-                      <h4 className="font-bold text-white text-xl font-serif">{debateConfig.moderator.name}</h4>
-                      <Badge className={`${
-                        currentSpeaker === 'moderator' 
-                          ? 'bg-amber-500/30 text-amber-200 border-amber-400/50' 
-                          : 'bg-slate-600/30 text-slate-300 border-slate-500/30'
-                      } text-sm px-3 py-1`}>
-                        {debateConfig.moderator.subtitle}
-                      </Badge>
-                      {currentSpeaker === 'moderator' && (
-                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs animate-pulse">
-                          MODERATING
-                        </Badge>
-                      )}
-                      {currentSpeaker !== 'moderator' && (
-                        <p className="text-slate-400 text-sm italic mt-2">
-                          {philosopherExpressions[debateConfig.moderator.name] || "maintaining order"}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Philosophers below with Enhanced Design */}
-              <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
-                {debateConfig.philosophers.map((philosopher, index) => {
-                  const isActive = currentSpeaker === 'philosopher1' && index === 0 || currentSpeaker === 'philosopher2' && index === 1;
-                  const colorMap = {
-                    emerald: 'emerald-400',
-                    red: 'red-400', 
-                    blue: 'blue-400',
-                    purple: 'purple-400'
-                  };
-                  const borderColor = colorMap[philosopher.color as keyof typeof colorMap] || 'blue-400';
-                  
-                  return (
-                    <div key={philosopher.name} className={`bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm rounded-3xl p-6 border-2 transition-all duration-500 shadow-xl ${
-                      isActive 
-                        ? `border-${borderColor}/60 shadow-${philosopher.color}-500/20 ring-4 ring-${borderColor}/20 scale-105` 
-                        : 'border-slate-600/40 hover:border-slate-500/50'
-                    }`}>
-                      <div className="flex flex-col items-center text-center">
-                        <div className="text-4xl mb-3">
-                          {philosopher.color === 'emerald' && '💭'}
-                          {philosopher.color === 'red' && '🔥'}
-                          {philosopher.color === 'blue' && '🧠'}
-                          {philosopher.color === 'purple' && '⚡'}
-                        </div>
-                        <div className="space-y-2">
-                          <h4 className="font-bold text-white text-xl font-serif">{philosopher.name}</h4>
-                          <Badge className={`${
-                            isActive 
-                              ? `bg-${philosopher.color}-500/30 text-${philosopher.color}-200 border-${philosopher.color}-400/50` 
-                              : 'bg-slate-600/30 text-slate-300 border-slate-500/30'
-                          } text-sm px-3 py-1`}>
-                            {philosopher.subtitle}
-                          </Badge>
-                          {isActive && (
-                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs animate-pulse">
-                              SPEAKING
-                            </Badge>
-                          )}
-                          {!isActive && (
-                            <p className="text-slate-400 text-sm italic mt-2">
-                              {philosopherExpressions[philosopher.name] || "pondering existence"}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+      {/* Main Content - Single Row Layout */}
+      <div className="px-6 py-4 h-[calc(100vh-80px)] flex gap-6">
+        
+        {/* Left Panel - Participants (30%) */}
+        <div className="w-[30%] flex flex-col gap-4">
+          <h3 className="text-sm font-bold text-white text-center mb-2">PARTICIPANTS</h3>
+          
+          {/* Moderator */}
+          <div className={`bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm rounded-2xl p-4 border-2 transition-all duration-500 ${
+            currentSpeaker === 'moderator' 
+              ? 'border-amber-400/60 shadow-amber-500/20 ring-2 ring-amber-400/20 scale-105' 
+              : 'border-slate-600/40'
+          }`}>
+            <div className="flex flex-col items-center text-center">
+              <div className="text-2xl mb-2">⚖️</div>
+              <h4 className="font-bold text-white text-sm font-serif">{debateConfig.moderator.name}</h4>
+              <Badge className="text-xs px-2 py-1 mb-1 bg-slate-600/30 text-slate-300">
+                {debateConfig.moderator.subtitle}
+              </Badge>
+              {currentSpeaker === 'moderator' && (
+                <Badge className="bg-green-500/20 text-green-400 text-xs animate-pulse">SPEAKING</Badge>
+              )}
+              {currentSpeaker !== 'moderator' && (
+                <p className="text-slate-400 text-xs italic mt-1">
+                  {philosopherExpressions[debateConfig.moderator.name] || "maintaining order"}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Fixed Height Speech Container */}
-          <div className="mb-8">
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="text-3xl">
+          {/* Philosophers */}
+          {debateConfig.philosophers.map((philosopher, index) => {
+            const isActive = currentSpeaker === 'philosopher1' && index === 0 || currentSpeaker === 'philosopher2' && index === 1;
+            const colorMap = {
+              emerald: 'emerald-400',
+              red: 'red-400', 
+              blue: 'blue-400',
+              purple: 'purple-400'
+            };
+            const borderColor = colorMap[philosopher.color as keyof typeof colorMap] || 'blue-400';
+            
+            return (
+              <div key={philosopher.name} className={`bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm rounded-2xl p-4 border-2 transition-all duration-500 ${
+                isActive 
+                  ? `border-${borderColor}/60 shadow-${philosopher.color}-500/20 ring-2 ring-${borderColor}/20 scale-105` 
+                  : 'border-slate-600/40'
+              }`}>
+                <div className="flex flex-col items-center text-center">
+                  <div className="text-2xl mb-2">
+                    {philosopher.color === 'emerald' && '💭'}
+                    {philosopher.color === 'red' && '🔥'}
+                    {philosopher.color === 'blue' && '🧠'}
+                    {philosopher.color === 'purple' && '⚡'}
+                  </div>
+                  <h4 className="font-bold text-white text-sm font-serif">{philosopher.name}</h4>
+                  <Badge className="text-xs px-2 py-1 mb-1 bg-slate-600/30 text-slate-300">
+                    {philosopher.subtitle}
+                  </Badge>
+                  {isActive && (
+                    <Badge className="bg-green-500/20 text-green-400 text-xs animate-pulse">SPEAKING</Badge>
+                  )}
+                  {!isActive && (
+                    <p className="text-slate-400 text-xs italic mt-1">
+                      {philosopherExpressions[philosopher.name] || "pondering existence"}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Center Panel - Speech & Interaction (40%) */}
+        <div className="w-[40%] flex flex-col">
+          {/* Current Speaker & Speech */}
+          <div className="flex-1 bg-slate-800/30 backdrop-blur-sm rounded-2xl p-6 mb-4 flex flex-col">
+            <div className="text-center mb-4">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="text-2xl">
                   {activeParticipant?.color === 'emerald' && '💭'}
                   {activeParticipant?.color === 'red' && '🔥'}
                   {activeParticipant?.color === 'blue' && '🧠'}
@@ -361,165 +356,133 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                   {activeParticipant?.color === 'amber' && '⚖️'}
                   {currentSpeaker === 'moderator' && '⚖️'}
                 </div>
-                <h2 className="text-2xl font-bold text-white font-serif">
+                <h2 className="text-xl font-bold text-white font-serif">
                   {activeParticipant?.name.toUpperCase() || 'MODERATOR'}
                 </h2>
               </div>
-              <Badge variant="secondary" className="bg-slate-700 text-slate-300">
+              <Badge variant="secondary" className="bg-slate-700 text-slate-300 text-xs">
                 {activeParticipant?.subtitle || 'The Moderator'}
               </Badge>
             </div>
             
-            {/* Fixed Height Speech Container - 300px minimum height */}
-            <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 mb-8 h-80 flex items-center justify-center">
-              <div className="text-center max-w-3xl">
-                <p className="text-slate-200 text-xl leading-relaxed italic mb-6">
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center max-w-lg">
+                <p className="text-slate-200 text-lg leading-relaxed italic mb-4">
                   "{currentStatement}"
                 </p>
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-slate-400">Speaking...</span>
+                  <span className="text-slate-400 text-sm">Speaking...</span>
                 </div>
               </div>
             </div>
-            
-            {/* Voice Control Button */}
-            <div className="text-center mb-8">
+
+            {/* Voice Control */}
+            <div className="text-center mt-4">
               <Button 
                 onClick={handleMuteToggle} 
                 size="lg" 
                 disabled={!isConnected}
-                className={`relative font-bold text-xl px-12 py-6 rounded-2xl backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg ${
+                className={`font-bold px-8 py-3 rounded-xl backdrop-blur-sm transition-all duration-200 hover:scale-105 ${
                   isUserMuted 
-                    ? 'bg-gradient-to-r from-red-600/20 via-red-500/20 to-orange-500/20 hover:from-red-600/30 hover:via-red-500/30 hover:to-orange-500/30 border border-red-500/30 hover:border-red-400/40 text-red-300 hover:text-red-200 hover:shadow-red-500/10' 
-                    : 'bg-gradient-to-r from-green-600/20 via-green-500/20 to-emerald-500/20 hover:from-green-600/30 hover:via-green-500/30 hover:to-emerald-500/30 border border-green-500/30 hover:border-green-400/40 text-green-300 hover:text-green-200 hover:shadow-green-500/10'
+                    ? 'bg-gradient-to-r from-red-600/20 to-orange-500/20 hover:from-red-600/30 hover:to-orange-500/30 border border-red-500/30 text-red-300' 
+                    : 'bg-gradient-to-r from-green-600/20 to-emerald-500/20 hover:from-green-600/30 hover:to-emerald-500/30 border border-green-500/30 text-green-300'
                 } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className={`absolute inset-0 rounded-2xl blur-sm ${
-                  isUserMuted ? 'bg-gradient-to-r from-red-600/10 to-orange-500/10' : 'bg-gradient-to-r from-green-600/10 to-emerald-500/10'
-                }`}></div>
-                <div className="relative flex items-center">
-                  {isUserMuted ? (
-                    <>
-                      <MicOff className="h-6 w-6 mr-3 animate-pulse" />
-                      UNMUTE TO SPEAK
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-6 w-6 mr-3 animate-pulse" />
-                      YOU'RE LIVE - SPEAK NOW
-                    </>
-                  )}
-                </div>
+                {isUserMuted ? (
+                  <>
+                    <MicOff className="h-4 w-4 mr-2" />
+                    UNMUTE TO SPEAK
+                  </>
+                ) : (
+                  <>
+                    <Mic className="h-4 w-4 mr-2 animate-pulse" />
+                    YOU'RE LIVE
+                  </>
+                )}
               </Button>
-              <p className="text-slate-400 text-sm mt-3">
+              <p className="text-slate-400 text-xs mt-2">
                 {error 
-                  ? 'Setup required: Configure your Vapi Public Key and Assistant ID' 
+                  ? 'Setup required: Configure your Vapi keys' 
                   : !isConnected 
-                    ? 'Connecting to voice debate...' 
+                    ? 'Connecting...' 
                     : isUserMuted 
-                      ? 'Click to join the debate with your voice' 
-                      : 'You can now speak directly to the philosophers'
+                      ? 'Click to join the debate' 
+                      : 'You can now speak to the philosophers'
                 }
               </p>
             </div>
           </div>
 
-          {/* Expandable Live Transcript */}
-          {transcript.length > 0 && (
-            <div className="mb-8">
-              <div className="text-center mb-6">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <h3 className="text-2xl font-bold text-white font-serif">LIVE DEBATE TRANSCRIPT</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsTranscriptExpanded(!isTranscriptExpanded)}
-                    className="text-slate-400 hover:text-white"
-                  >
-                    {isTranscriptExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                  </Button>
-                </div>
-                <Badge variant="secondary" className="bg-slate-700 text-slate-300">
-                  Real-time conversation
-                </Badge>
-              </div>
-              
-              <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/30">
-                <ScrollArea className={`${isTranscriptExpanded ? 'h-96' : 'h-48'} transition-all duration-300`}>
-                  <div className="space-y-4 pr-4">
-                    {transcript.map((message, index) => (
-                      <div key={index} className="border-l-2 border-slate-600/30 pl-4">
-                        <p className="text-slate-200 leading-relaxed">
-                          {message}
-                        </p>
-                      </div>
-                    ))}
-                    <div ref={transcriptEndRef} />
-                  </div>
-                </ScrollArea>
-                
-                <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-slate-700/30">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-slate-400 text-sm">Live conversation in progress...</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Enhanced Socratic Challenge Toolkit */}
-          <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/30">
-            <div className="text-center mb-6">
-              <h3 className="text-lg font-bold text-white mb-2">💭 Socratic Challenge Toolkit</h3>
-              <p className="text-slate-400 text-sm">Quick challenges to get you started</p>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <div className="flex gap-1">
-                  {socraticChallenges.map((_, index) => (
-                    <div 
-                      key={index} 
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentChallengeSet ? 'bg-blue-400' : 'bg-slate-600'
-                      }`} 
-                    />
-                  ))}
-                </div>
+          {/* Quick Challenges */}
+          <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/30">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-white">💭 Quick Challenges</h3>
+              <div className="flex gap-1">
+                <Button onClick={prevChallengeSet} variant="ghost" size="sm" className="h-6 w-6 p-0 text-slate-400">
+                  <ChevronLeft className="h-3 w-3" />
+                </Button>
+                <Button onClick={nextChallengeSet} variant="ghost" size="sm" className="h-6 w-6 p-0 text-slate-400">
+                  <ChevronRight className="h-3 w-3" />
+                </Button>
               </div>
             </div>
             
-            <div className="relative">
-              <div className="grid md:grid-cols-2 gap-3 mb-4">
-                {socraticChallenges[currentChallengeSet].map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleQuickChallenge(suggestion)}
-                    disabled={!isConnected}
-                    className={`p-4 rounded-xl bg-slate-700/30 hover:bg-slate-600/40 text-slate-300 hover:text-white text-sm transition-all duration-200 hover:scale-105 border border-slate-600/20 hover:border-slate-500/40 backdrop-blur-sm hover:shadow-lg ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    "{suggestion}"
-                  </button>
-                ))}
-              </div>
-              
-              <div className="flex justify-center gap-3">
-                <Button 
-                  onClick={prevChallengeSet} 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl"
+            <div className="grid grid-cols-2 gap-2">
+              {socraticChallenges[currentChallengeSet].map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleQuickChallenge(suggestion)}
+                  disabled={!isConnected}
+                  className={`p-2 rounded-lg bg-slate-700/30 hover:bg-slate-600/40 text-slate-300 hover:text-white text-xs transition-all duration-200 hover:scale-105 border border-slate-600/20 ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Previous
-                </Button>
-                <Button 
-                  onClick={nextChallengeSet} 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
+                  "{suggestion}"
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel - Live Transcript (30%) */}
+        <div className="w-[30%] flex flex-col">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-white">LIVE TRANSCRIPT</h3>
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs font-semibold text-slate-300">{getCurrentSpeakerName()}</h4>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsTranscriptExpanded(!isTranscriptExpanded)}
+                className="h-6 w-6 p-0 text-slate-400"
+              >
+                {isTranscriptExpanded ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex-1 bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/30 flex flex-col">
+            <ScrollArea className="flex-1">
+              <div className="space-y-3 pr-2">
+                {transcript.length === 0 ? (
+                  <div className="flex items-center justify-center h-32 text-slate-400 text-sm">
+                    Waiting for conversation to begin...
+                  </div>
+                ) : (
+                  transcript.map((message, index) => (
+                    <div key={index} className="border-l-2 border-slate-600/30 pl-3">
+                      <p className="text-slate-200 text-sm leading-relaxed">
+                        {message}
+                      </p>
+                    </div>
+                  ))
+                )}
+                <div ref={transcriptEndRef} />
               </div>
+            </ScrollArea>
+            
+            <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-slate-700/30">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-slate-400 text-xs">Live conversation</span>
             </div>
           </div>
         </div>
