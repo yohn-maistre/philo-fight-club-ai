@@ -84,13 +84,19 @@ export const BattleCard = ({
             <span>{duration}</span>
           </div>
           
-          <Button 
+          <button 
             onClick={() => onJoinBattle(id)}
-            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-white font-semibold group-hover:scale-105 transition-transform"
+            className="relative bg-slate-800/50 backdrop-blur-sm border border-slate-600/30 text-white px-4 py-2 rounded-lg 
+                     hover:bg-slate-700/50 hover:border-slate-500/50 hover:scale-105 
+                     active:scale-95 transition-all duration-200 font-medium
+                     group-hover:border-yellow-500/30 group-hover:text-yellow-300
+                     flex items-center gap-2"
           >
-            <Mic className="h-4 w-4 mr-2" />
-            Join Battle
-          </Button>
+            <Mic className="h-4 w-4" />
+            <span>Join Battle</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/0 via-yellow-500/5 to-yellow-400/0 
+                          opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
+          </button>
         </div>
       </CardContent>
     </Card>

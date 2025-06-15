@@ -19,6 +19,9 @@ interface UseVapiOptions {
   onConnect?: () => void;
   onDisconnect?: () => void;
   onError?: (error: any) => void;
+  onSpeechStart?: () => void;
+  onSpeechEnd?: () => void;
+  onVolumeLevel?: (volume: number) => void;
 }
 
 export const useVapi = (options: UseVapiOptions = {}) => {
@@ -26,6 +29,8 @@ export const useVapi = (options: UseVapiOptions = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [vapiInstance, setVapiInstance] = useState<Vapi | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [volumeLevel, setVolumeLevel] = useState(0);
 
   // TODO: Add your Vapi Public Key here
   const publicKey = "YOUR_VAPI_PUBLIC_KEY"; // Replace with your actual public key
@@ -50,10 +55,14 @@ export const useVapi = (options: UseVapiOptions = {}) => {
       // Set up event listeners
       vapi.on('speech-start', () => {
         console.log('Speech started');
+        setIsSpeaking(true);
+        options.onSpeechStart?.();
       });
 
       vapi.on('speech-end', () => {
         console.log('Speech ended');
+        setIsSpeaking(false);
+        options.onSpeechEnd?.();
       });
 
       vapi.on('call-start', () => {
@@ -66,12 +75,15 @@ export const useVapi = (options: UseVapiOptions = {}) => {
       vapi.on('call-end', () => {
         console.log('Call ended');
         setIsConnected(false);
+        setIsSpeaking(false);
         setVapiInstance(null);
+        setVolumeLevel(0);
         options.onDisconnect?.();
       });
 
       vapi.on('volume-level', (volume) => {
-        // Handle volume level updates if needed
+        setVolumeLevel(volume);
+        options.onVolumeLevel?.(volume);
       });
 
       vapi.on('message', (message) => {
@@ -96,11 +108,12 @@ export const useVapi = (options: UseVapiOptions = {}) => {
         console.error('Vapi error:', error);
         setError(error.message || 'An error occurred');
         setIsLoading(false);
+        setIsConnected(false);
+        setIsSpeaking(false);
         options.onError?.(error);
       });
 
-      // Start the call with the assistant (backend will handle squad logic)
-      // Use the correct Vapi SDK method
+      // Start the call with the assistant
       await vapi.start(assistantId);
       setVapiInstance(vapi);
 
@@ -108,6 +121,8 @@ export const useVapi = (options: UseVapiOptions = {}) => {
       console.error('Failed to connect to Vapi:', err);
       setError(err instanceof Error ? err.message : 'Failed to connect to Vapi');
       setIsLoading(false);
+      setIsConnected(false);
+      setIsSpeaking(false);
       options.onError?.(err);
     }
   }, [isConnected, isLoading, options, publicKey]);
@@ -118,7 +133,9 @@ export const useVapi = (options: UseVapiOptions = {}) => {
     try {
       await vapiInstance.stop();
       setIsConnected(false);
+      setIsSpeaking(false);
       setVapiInstance(null);
+      setVolumeLevel(0);
       options.onDisconnect?.();
     } catch (err) {
       console.error('Failed to disconnect from Vapi:', err);
@@ -146,6 +163,26 @@ export const useVapi = (options: UseVapiOptions = {}) => {
     }
   }, [isConnected, vapiInstance]);
 
+  const mute = useCallback(() => {
+    if (!isConnected || !vapiInstance) return;
+    
+    try {
+      vapiInstance.setMuted(true);
+    } catch (err) {
+      console.error('Failed to mute:', err);
+    }
+  }, [isConnected, vapiInstance]);
+
+  const unmute = useCallback(() => {
+    if (!isConnected || !vapiInstance) return;
+    
+    try {
+      vapiInstance.setMuted(false);
+    } catch (err) {
+      console.error('Failed to unmute:', err);
+    }
+  }, [isConnected, vapiInstance]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -159,8 +196,12 @@ export const useVapi = (options: UseVapiOptions = {}) => {
     isConnected,
     isLoading,
     error,
+    isSpeaking,
+    volumeLevel,
     connect,
     disconnect,
-    sendMessage
+    sendMessage,
+    mute,
+    unmute
   };
 };
