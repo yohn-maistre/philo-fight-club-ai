@@ -11,7 +11,7 @@ export const HeroSection = ({ onEnterArena }: HeroSectionProps) => {
     <section className="relative py-20 px-4 text-center overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="white" fill-opacity="0.1"%3E%3Cpath d="M20 20c0-11.046-8.954-20-20-20v20h20z"/%3E%3C/g%3E%3C/svg%3E')] bg-repeat"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900"></div>
       </div>
       
       <div className="relative max-w-4xl mx-auto">
