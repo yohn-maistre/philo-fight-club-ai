@@ -30,21 +30,19 @@ interface ExpandableTabsProps {
 
 const buttonVariants = {
   initial: {
-    gap: 0,
     paddingLeft: "0.75rem",
     paddingRight: "0.75rem",
   },
   animate: (isSelected: boolean) => ({
-    gap: isSelected ? "0.5rem" : 0,
     paddingLeft: isSelected ? "1rem" : "0.75rem",
     paddingRight: isSelected ? "1rem" : "0.75rem",
   }),
 };
 
 const spanVariants = {
-  initial: { width: 0, opacity: 0 },
-  animate: { width: "auto", opacity: 1 },
-  exit: { width: 0, opacity: 0 },
+  initial: { width: 0, opacity: 0, marginLeft: 0 },
+  animate: { width: "auto", opacity: 1, marginLeft: "0.5rem" },
+  exit: { width: 0, opacity: 0, marginLeft: 0 },
 };
 
 const transition = { 
