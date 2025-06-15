@@ -89,9 +89,7 @@ export const InterruptInterface = ({
                 <Mic className="h-6 w-6 text-red-400" />
                 <h2 className="text-xl font-bold text-white">YOU ARE SPEAKING:</h2>
               </div>
-              {isRecording && <Badge className="bg-red-500 hover:bg-red-600 text-white">
-                  🔴 RECORDING
-                </Badge>}
+              {isRecording && <Badge className="bg-red-500 hover:bg-red-600 text-white">🔴 YOU ARE SPEAKING</Badge>}
             </div>
             
             <div className="bg-slate-900/50 rounded-lg p-6 mb-6 min-h-[150px]">
