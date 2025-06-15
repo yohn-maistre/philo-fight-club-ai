@@ -36,59 +36,81 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   // Get squad configuration
   const squadConfig = getSquadConfig(debateId);
 
-  // Vapi integration with improved message handling
+  // Vapi integration with improved message handling and speaker tracking
   const { 
     isConnected, 
     isLoading: vapiLoading, 
     error, 
     hasTriedConnection,
+    currentSpeaker: vapiCurrentSpeaker,
     connect, 
     disconnect, 
     sendMessage, 
+    sendBackgroundMessage,
     mute, 
     unmute, 
     isMuted 
   } = useVapi({
     onConnect: () => {
-      console.log('Connected to Vapi');
-      setTranscript(prev => [...prev, 'System: Connected to voice debate']);
+      console.log('Successfully connected to Vapi debate system');
+      setTranscript(prev => [...prev, 'System: 🎭 Connected to philosophical debate arena']);
       toast({
-        title: "Connected",
-        description: "Voice debate connection established",
+        title: "Arena Connected",
+        description: "The philosophical debate is now live",
       });
     },
     onDisconnect: () => {
-      console.log('Disconnected from Vapi');
-      setTranscript(prev => [...prev, 'System: Disconnected from voice debate']);
+      console.log('Disconnected from Vapi debate system');
+      setTranscript(prev => [...prev, 'System: 📞 Debate session ended']);
     },
     onMessage: (message) => {
-      console.log('Received message from Vapi:', message);
+      console.log('Debate message received:', message);
       if (message.transcript) {
         const speaker = message.transcript.speaker === 'user' ? 'You' : message.transcript.speaker || 'AI';
-        setTranscript(prev => [...prev, `${speaker}: ${message.transcript!.transcript}`]);
+        const transcriptText = message.transcript.transcript;
         
-        // Update current speaker based on transcript
+        setTranscript(prev => [...prev, `${speaker}: ${transcriptText}`]);
+        
+        // Update current speaker and statement for non-user messages
         if (message.transcript.speaker !== 'user') {
           setCurrentSpeakerName(message.transcript.speaker || 'AI');
-          setCurrentStatement(message.transcript.transcript);
+          setCurrentStatement(transcriptText);
         }
       }
     },
     onSpeechStart: () => {
-      console.log('Speech started - someone is speaking');
+      console.log('Speech detected in debate arena');
     },
     onSpeechEnd: () => {
-      console.log('Speech ended - silence detected');
+      console.log('Speech ended in debate arena');
+    },
+    onSpeakerChange: (speaker) => {
+      console.log('Speaker changed to:', speaker);
+      setCurrentSpeakerName(speaker);
+      
+      // Send background message about other participants' expressions
+      const otherPhilosophers = Object.keys(philosopherExpressions).filter(name => 
+        name.toLowerCase() !== speaker.toLowerCase()
+      );
+      
+      if (otherPhilosophers.length > 0) {
+        const randomPhilosopher = otherPhilosophers[Math.floor(Math.random() * otherPhilosophers.length)];
+        const randomExpression = absurdExpressions[Math.floor(Math.random() * absurdExpressions.length)];
+        sendBackgroundMessage(`While ${speaker} speaks, ${randomPhilosopher} is ${randomExpression} in the background.`);
+      }
     },
     onError: (error) => {
-      console.error('Vapi error:', error);
-      // Only add error message once, not continuously
-      if (!transcript.some(msg => msg.includes('Error -'))) {
-        setTranscript(prev => [...prev, `System: Error - ${error.message || 'Connection failed'}`]);
+      console.error('Vapi debate error:', error);
+      const errorMsg = `Debate Error: ${error?.message || 'Connection failed'}`;
+      
+      // Prevent duplicate error messages
+      if (!transcript.some(msg => msg.includes(errorMsg))) {
+        setTranscript(prev => [...prev, `System: ⚠️ ${errorMsg}`]);
       }
+      
       toast({
-        title: "Connection Error",
-        description: error.message || "Failed to connect to voice debate",
+        title: "Debate Connection Error",
+        description: error?.message || "Failed to connect to philosophical arena",
         variant: "destructive",
       });
     }
@@ -157,7 +179,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
 
   const debateConfig = getDebateConfig(debateId);
 
-  // Update expressions every 3-5 seconds
+  // Update expressions every 3-5 seconds and send background messages
   useEffect(() => {
     const updateExpressions = () => {
       const newExpressions: {[key: string]: string} = {};
@@ -176,8 +198,9 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     }, Math.random() * 2000 + 3000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [debateConfig, sendBackgroundMessage]);
 
+  // Timer effect
   useEffect(() => {
     const timer = setInterval(() => {
       setDebateTime(prev => prev + 1);
@@ -222,11 +245,9 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const handleMuteToggle = () => {
     if (isMuted) {
       unmute();
-      setIsUserMuted(false);
       setChallengeCount(prev => prev + 1);
     } else {
       mute();
-      setIsUserMuted(true);
     }
   };
 
@@ -350,13 +371,13 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
               size="lg" 
               disabled={!isConnected}
               className={`relative font-semibold text-lg px-10 py-5 rounded-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 shadow-2xl ${
-                isUserMuted 
+                isMuted 
                   ? 'bg-gradient-to-r from-slate-700/50 via-slate-600/50 to-slate-700/50 hover:from-slate-600/60 hover:via-slate-500/60 hover:to-slate-600/60 border-2 border-slate-500/30 hover:border-slate-400/40 text-slate-200 hover:text-white' 
                   : 'bg-gradient-to-r from-emerald-600/40 via-emerald-500/40 to-green-500/40 hover:from-emerald-600/50 hover:via-emerald-500/50 hover:to-green-500/50 border-2 border-emerald-500/40 hover:border-emerald-400/50 text-emerald-100 hover:text-white shadow-emerald-500/25'
               } ${!isConnected ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
               <div className="flex items-center gap-3">
-                {isUserMuted ? (
+                {isMuted ? (
                   <>
                     <MicOff className="h-5 w-5" />
                     Join Debate
@@ -371,10 +392,10 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             </Button>
             <p className="text-slate-400 text-sm mt-4 max-w-md mx-auto">
               {error 
-                ? 'Voice system requires setup - Configure your Vapi credentials' 
+                ? `Voice Error: ${error}` 
                 : !isConnected 
-                  ? 'Establishing voice connection...' 
-                  : isUserMuted 
+                  ? 'Establishing voice connection to debate arena...' 
+                  : isMuted 
                     ? 'Click to join the philosophical debate with your voice' 
                     : 'You are now participating in the live debate'
               }

@@ -11,6 +11,8 @@ interface VapiMessage {
   };
   role?: string;
   content?: string;
+  call?: any;
+  error?: any;
 }
 
 interface VapiSquadMember {
@@ -66,6 +68,7 @@ interface UseVapiOptions {
   onSpeechStart?: () => void;
   onSpeechEnd?: () => void;
   onVolumeLevel?: (volume: number) => void;
+  onSpeakerChange?: (speaker: string) => void;
 }
 
 export const useVapi = (options: UseVapiOptions) => {
@@ -77,8 +80,27 @@ export const useVapi = (options: UseVapiOptions) => {
   const [volumeLevel, setVolumeLevel] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [hasTriedConnection, setHasTriedConnection] = useState(false);
+  const [currentSpeaker, setCurrentSpeaker] = useState<string>('');
 
   const vapiPublicKey = import.meta.env.VITE_VAPI_PUBLIC_KEY;
+
+  // Background message handler for expressions
+  const sendBackgroundMessage = useCallback((content: string) => {
+    if (!isConnected || !vapiInstance) return;
+    
+    try {
+      vapiInstance.send({
+        type: "add-message",
+        message: {
+          role: "system",
+          content: content,
+        },
+      });
+      console.log('Background message sent:', content);
+    } catch (err) {
+      console.error('Failed to send background message:', err);
+    }
+  }, [isConnected, vapiInstance]);
 
   const connect = useCallback(async (callConfig: { 
     assistantId?: string; 
@@ -88,10 +110,16 @@ export const useVapi = (options: UseVapiOptions) => {
     const { assistantId, squadId, squadConfig } = callConfig;
     
     // Prevent multiple connection attempts
-    if (isConnected || isLoading || hasTriedConnection) return;
+    if (isConnected || isLoading || hasTriedConnection) {
+      console.log('Connection attempt blocked - already connected/loading/tried');
+      return;
+    }
+
+    console.log('Attempting Vapi connection with config:', { assistantId, squadId, squadConfig: !!squadConfig });
 
     if (!vapiPublicKey || vapiPublicKey === "YOUR_VAPI_PUBLIC_KEY" || vapiPublicKey === undefined) {
-      const errorMsg = "Vapi Public Key not configured. Please add your key to Vercel environment variables as VITE_VAPI_PUBLIC_KEY";
+      const errorMsg = "Vapi Public Key not configured. Please add VITE_VAPI_PUBLIC_KEY to your environment variables.";
+      console.error('Vapi Key Error:', errorMsg);
       setError(errorMsg);
       setHasTriedConnection(true);
       options.onError?.(new Error(errorMsg));
@@ -103,7 +131,8 @@ export const useVapi = (options: UseVapiOptions) => {
     setHasTriedConnection(true);
 
     try {
-      const vapi = new Vapi(vapiPublicKey!);
+      console.log('Creating Vapi instance with key:', vapiPublicKey.substring(0, 10) + '...');
+      const vapi = new Vapi(vapiPublicKey);
       
       // Set up event listeners
       vapi.on('speech-start', () => {
@@ -119,9 +148,10 @@ export const useVapi = (options: UseVapiOptions) => {
       });
 
       vapi.on('call-start', () => {
-        console.log('Call started');
+        console.log('Call started successfully');
         setIsConnected(true);
         setIsLoading(false);
+        setError(null);
         options.onConnect?.();
       });
 
@@ -131,6 +161,7 @@ export const useVapi = (options: UseVapiOptions) => {
         setIsSpeaking(false);
         setVapiInstance(null);
         setVolumeLevel(0);
+        setCurrentSpeaker('');
         options.onDisconnect?.();
       });
 
@@ -140,14 +171,26 @@ export const useVapi = (options: UseVapiOptions) => {
       });
 
       vapi.on('message', (message) => {
-        console.log('Received message:', message);
+        console.log('Vapi message received:', message);
         
+        // Handle transcript messages
         if (message.type === 'transcript' && message.transcript) {
+          const speaker = message.transcript.speaker;
+          if (speaker && speaker !== 'user' && speaker !== currentSpeaker) {
+            setCurrentSpeaker(speaker);
+            options.onSpeakerChange?.(speaker);
+            
+            // Send background message for expression update
+            const expressions = ["adjusting his toga dramatically", "stroking his beard thoughtfully", "gesturing with philosophical authority", "gazing into the distance contemplatively"];
+            const randomExpression = expressions[Math.floor(Math.random() * expressions.length)];
+            sendBackgroundMessage(`The speaker ${speaker} is now ${randomExpression} while speaking.`);
+          }
+          
           options.onMessage?.({
             type: 'transcript',
             transcript: {
               transcript: message.transcript.transcript,
-              speaker: message.transcript.speaker
+              speaker: speaker || 'AI'
             }
           });
         }
@@ -156,53 +199,64 @@ export const useVapi = (options: UseVapiOptions) => {
       });
 
       vapi.on('error', (error) => {
-        console.error('Vapi error:', error);
-        setError(error.message || 'An error occurred');
+        console.error('Vapi error details:', error);
+        const errorMessage = error?.message || error?.toString() || 'Unknown Vapi error occurred';
+        setError(`Vapi Error: ${errorMessage}`);
         setIsLoading(false);
         setIsConnected(false);
         setIsSpeaking(false);
         options.onError?.(error);
       });
 
-      // Start the call with the correct Vapi SDK format
+      // Start the call with proper configuration
+      let startConfig: any = {};
+
       if (squadConfig) {
-        // For squads, pass the squad config directly to Vapi
-        console.log('Starting Vapi with squad config');
-        await vapi.start({
-          assistant: {
-            // Use the first member as the starting assistant
-            ...squadConfig.members[0].assistant
+        console.log('Starting with squad configuration');
+        // For squad configurations, use the transient assistant approach
+        startConfig = {
+          squad: {
+            members: squadConfig.members.map(member => ({
+              ...member,
+              // Ensure silent transfers
+              assistantDestinations: member.assistantDestinations?.map(dest => ({
+                ...dest,
+                message: "" // Silent transfer
+              }))
+            }))
           }
-        });
+        };
       } else if (assistantId) {
-        await vapi.start(assistantId);
+        console.log('Starting with assistant ID:', assistantId);
+        startConfig = assistantId;
       } else if (squadId) {
-        // For pre-created squads, use the squad ID
-        await vapi.start(squadId);
+        console.log('Starting with squad ID:', squadId);
+        startConfig = { squadId };
       } else {
-        const errorMsg = "No assistantId, squadId, or squadConfig provided to connect.";
-        setError(errorMsg);
-        options.onError?.(new Error(errorMsg));
-        setIsLoading(false);
-        return;
+        throw new Error("No assistantId, squadId, or squadConfig provided");
       }
+
+      console.log('Starting Vapi with config:', startConfig);
+      await vapi.start(startConfig);
       
       setVapiInstance(vapi);
 
-    } catch (err) {
-      console.error('Failed to connect to Vapi:', err);
-      setError(err instanceof Error ? err.message : 'Failed to connect to Vapi');
+    } catch (err: any) {
+      console.error('Vapi connection failed:', err);
+      const errorMessage = err?.message || err?.toString() || 'Failed to connect to Vapi';
+      setError(`Connection Failed: ${errorMessage}`);
       setIsLoading(false);
       setIsConnected(false);
       setIsSpeaking(false);
       options.onError?.(err);
     }
-  }, [isConnected, isLoading, hasTriedConnection, options, vapiPublicKey]);
+  }, [isConnected, isLoading, hasTriedConnection, options, vapiPublicKey, currentSpeaker, sendBackgroundMessage]);
 
   const disconnect = useCallback(async () => {
-    if (!isConnected || !vapiInstance) return;
+    if (!vapiInstance) return;
 
     try {
+      console.log('Disconnecting from Vapi');
       await vapiInstance.stop();
       setIsConnected(false);
       setIsSpeaking(false);
@@ -210,13 +264,14 @@ export const useVapi = (options: UseVapiOptions) => {
       setVolumeLevel(0);
       setIsMuted(false);
       setHasTriedConnection(false);
+      setCurrentSpeaker('');
       options.onDisconnect?.();
     } catch (err) {
       console.error('Failed to disconnect from Vapi:', err);
       setError(err instanceof Error ? err.message : 'Failed to disconnect from Vapi');
       options.onError?.(err);
     }
-  }, [isConnected, vapiInstance, options]);
+  }, [vapiInstance, options]);
 
   const sendMessage = useCallback((message: string) => {
     if (!isConnected || !vapiInstance) {
@@ -232,6 +287,7 @@ export const useVapi = (options: UseVapiOptions) => {
           content: message
         }
       });
+      console.log('Message sent to Vapi:', message);
     } catch (err) {
       console.error('Failed to send message:', err);
     }
@@ -243,6 +299,7 @@ export const useVapi = (options: UseVapiOptions) => {
     try {
       vapiInstance.setMuted(true);
       setIsMuted(true);
+      console.log('Microphone muted');
     } catch (err) {
       console.error('Failed to mute:', err);
     }
@@ -254,6 +311,7 @@ export const useVapi = (options: UseVapiOptions) => {
     try {
       vapiInstance.setMuted(false);
       setIsMuted(false);
+      console.log('Microphone unmuted');
     } catch (err) {
       console.error('Failed to unmute:', err);
     }
@@ -276,9 +334,11 @@ export const useVapi = (options: UseVapiOptions) => {
     volumeLevel,
     isMuted,
     hasTriedConnection,
+    currentSpeaker,
     connect,
     disconnect,
     sendMessage,
+    sendBackgroundMessage,
     mute,
     unmute
   };
