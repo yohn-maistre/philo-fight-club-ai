@@ -13,8 +13,23 @@ interface VapiMessage {
   content?: string;
 }
 
+interface VapiSquadMemberConfig {
+  assistantId: string;
+  // Add other squad member specific configurations if needed
+  // e.g., name?: string, tools?: any[];
+}
+
+interface VapiSquadConfig {
+  name: string;
+  members: VapiSquadMemberConfig[];
+  // Add other squad level configurations if needed
+  // e.g., firstMessage?: string;
+}
+
 interface UseVapiOptions {
-  assistantId?: string;
+  assistantId?: string; // For single assistant calls
+  squadId?: string; // For pre-configured squads on Vapi dashboard
+  squadConfig?: VapiSquadConfig; // For transient, dynamically configured squads
   onMessage?: (message: VapiMessage) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
@@ -24,7 +39,7 @@ interface UseVapiOptions {
   onVolumeLevel?: (volume: number) => void;
 }
 
-export const useVapi = (options: UseVapiOptions = {}) => {
+export const useVapi = (options: UseVapiOptions) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,14 +48,18 @@ export const useVapi = (options: UseVapiOptions = {}) => {
   const [volumeLevel, setVolumeLevel] = useState(0);
 
   // TODO: Add your Vapi Public Key here
-  const publicKey = "YOUR_VAPI_PUBLIC_KEY"; // Replace with your actual public key
+  // const publicKey = new Vapi(process.env.NEXT_PUBLIC_VAPI_WEB_TOKEN!); // Replace with your actual public key
+  // Corrected for Vite:
+  const vapiPublicKey = import.meta.env.VITE_VAPI_PUBLIC_KEY;
 
-  const connect = useCallback(async (assistantId: string) => {
+  const connect = useCallback(async (callConfig: { assistantId?: string; squadId?: string, squadConfig?: VapiSquadConfig }) => {
+    const { assistantId, squadId, squadConfig } = callConfig;
     if (isConnected || isLoading) return;
-
+  
     // Check if public key is configured
-    if (!publicKey || publicKey === "YOUR_VAPI_PUBLIC_KEY") {
-      const errorMsg = "Vapi Public Key not configured. Please add your key to src/hooks/useVapi.ts";
+    // Check if public key is configured
+    if (!vapiPublicKey || vapiPublicKey === "YOUR_VAPI_PUBLIC_KEY" || vapiPublicKey === undefined) {
+      const errorMsg = "Vapi Public Key not configured. Please add your key to .env and ensure it's named VITE_VAPI_PUBLIC_KEY";
       setError(errorMsg);
       options.onError?.(new Error(errorMsg));
       return;
@@ -50,7 +69,9 @@ export const useVapi = (options: UseVapiOptions = {}) => {
     setError(null);
 
     try {
-      const vapi = new Vapi(publicKey);
+      // const vapi = new Vapi(publicKey); // Original
+      // Corrected initialization:
+      const vapi = new Vapi(vapiPublicKey!);
       
       // Set up event listeners
       vapi.on('speech-start', () => {
@@ -113,8 +134,18 @@ export const useVapi = (options: UseVapiOptions = {}) => {
         options.onError?.(error);
       });
 
-      // Start the call with the assistant
-      await vapi.start(assistantId);
+      // Start the call with either an assistantId, squadId, or a squad configuration
+      if (assistantId) {
+        await vapi.start(assistantId);
+      } else if (squadId) {
+        await vapi.start({ squad: squadConfig });
+      } else {
+        const errorMsg = "No assistantId, squadId, or squadConfig provided to connect.";
+        setError(errorMsg);
+        options.onError?.(new Error(errorMsg));
+        setIsLoading(false);
+        return;
+      }
       setVapiInstance(vapi);
 
     } catch (err) {
@@ -125,7 +156,11 @@ export const useVapi = (options: UseVapiOptions = {}) => {
       setIsSpeaking(false);
       options.onError?.(err);
     }
-  }, [isConnected, isLoading, options, publicKey]);
+  }, [isConnected, isLoading, options, vapiPublicKey]);
+
+  // Ensure options always has a default value if not provided by the consumer
+  const defaultOptions: Partial<UseVapiOptions> = {};
+  const currentOptions = { ...defaultOptions, ...options };
 
   const disconnect = useCallback(async () => {
     if (!isConnected || !vapiInstance) return;
