@@ -4,7 +4,8 @@ import { BattleCard } from "@/components/BattleCard";
 import { DebateArena } from "@/components/DebateArena";
 import { MarqueeAnimation } from "@/components/ui/marquee-effect";
 import { ExpandableTabs } from "@/components/ui/expandable-tabs";
-import { BookOpen, Zap, Flame, Skull } from "lucide-react";
+import { BookOpen, Zap, Flame, Skull, Lock } from "lucide-react";
+import { getSquadConfig } from "@/config/squadConfigs";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'battles' | 'arena'>('landing');
@@ -12,7 +13,7 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(0);
 
   const availableBattles = [
-    // Classic Philosophy
+    // Classic Philosophy - Squad Enabled
     {
       id: "morality-debate",
       title: "The Morality Clash",
@@ -33,7 +34,8 @@ const Index = () => {
         }
       ],
       duration: "~15 min",
-      category: "classic"
+      category: "classic",
+      isSquadEnabled: true
     },
     {
       id: "free-will-debate",
@@ -55,7 +57,8 @@ const Index = () => {
         }
       ],
       duration: "~12 min",
-      category: "classic"
+      category: "classic",
+      isSquadEnabled: true
     },
     {
       id: "knowledge-debate",
@@ -77,10 +80,11 @@ const Index = () => {
         }
       ],
       duration: "~18 min",
-      category: "classic"
+      category: "classic",
+      isSquadEnabled: true
     },
     
-    // Contemporary & Highly Relevant
+    // Contemporary & Highly Relevant - Locked for now
     {
       id: "ai-consciousness-debate",
       title: "The Mind Machine War",
@@ -101,7 +105,8 @@ const Index = () => {
         }
       ],
       duration: "~20 min",
-      category: "modern"
+      category: "modern",
+      isSquadEnabled: false
     },
     {
       id: "capitalism-debate",
@@ -123,7 +128,8 @@ const Index = () => {
         }
       ],
       duration: "~25 min",
-      category: "modern"
+      category: "modern",
+      isSquadEnabled: false
     },
     {
       id: "privacy-surveillance-debate",
@@ -145,7 +151,8 @@ const Index = () => {
         }
       ],
       duration: "~16 min",
-      category: "modern"
+      category: "modern",
+      isSquadEnabled: false
     },
     
     // Provocative Modern Issues
@@ -169,7 +176,8 @@ const Index = () => {
         }
       ],
       duration: "~14 min",
-      category: "provocative"
+      category: "provocative",
+      isSquadEnabled: false
     },
     {
       id: "gender-nature-debate",
@@ -191,7 +199,8 @@ const Index = () => {
         }
       ],
       duration: "~22 min",
-      category: "provocative"
+      category: "provocative",
+      isSquadEnabled: false
     },
     {
       id: "climate-progress-debate",
@@ -213,7 +222,8 @@ const Index = () => {
         }
       ],
       duration: "~19 min",
-      category: "provocative"
+      category: "provocative",
+      isSquadEnabled: false
     },
     
     // Wild Cards & Cultural Battles
@@ -237,7 +247,8 @@ const Index = () => {
         }
       ],
       duration: "~17 min",
-      category: "wild"
+      category: "wild",
+      isSquadEnabled: false
     },
     {
       id: "social-media-humanity-debate",
@@ -259,7 +270,8 @@ const Index = () => {
         }
       ],
       duration: "~13 min",
-      category: "wild"
+      category: "wild",
+      isSquadEnabled: false
     },
     {
       id: "death-meaning-debate",
@@ -281,7 +293,8 @@ const Index = () => {
         }
       ],
       duration: "~21 min",
-      category: "wild"
+      category: "wild",
+      isSquadEnabled: false
     }
   ];
 
@@ -308,6 +321,10 @@ const Index = () => {
   };
 
   const handleJoinBattle = (battleId: string) => {
+    const battle = availableBattles.find(b => b.id === battleId);
+    if (battle && !battle.isSquadEnabled) {
+      return; // Prevent joining locked battles
+    }
     setSelectedBattle(battleId);
     setCurrentView('arena');
   };
@@ -339,7 +356,7 @@ const Index = () => {
             <h1 className="text-4xl font-bold text-white mb-4 font-serif">Choose Your Philosophical Battle</h1>
             <p className="text-slate-300 text-lg mb-2">Select a debate to join as Socratic challenger</p>
             
-            {/* Clean Glassy Socrates Moderator Badge */}
+            {/* Squad Moderator Badge */}
             <div className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-slate-800/20 backdrop-blur-sm border border-slate-600/20 rounded-full">
               <div className="relative">
                 <div className="w-8 h-8 bg-slate-700/50 backdrop-blur-sm rounded-full flex items-center justify-center border border-slate-600/30">
@@ -347,7 +364,7 @@ const Index = () => {
                 </div>
                 <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border border-slate-800"></div>
               </div>
-              <span className="text-slate-300 font-medium text-sm font-serif">Socrates Moderating</span>
+              <span className="text-slate-300 font-medium text-sm font-serif">Squad-Powered Debates</span>
             </div>
             
             {/* Category Tabs */}
@@ -363,11 +380,21 @@ const Index = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredBattles.map((battle) => (
-              <BattleCard
-                key={battle.id}
-                {...battle}
-                onJoinBattle={handleJoinBattle}
-              />
+              <div key={battle.id} className="relative">
+                <BattleCard
+                  {...battle}
+                  onJoinBattle={handleJoinBattle}
+                />
+                {!battle.isSquadEnabled && (
+                  <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm rounded-xl flex items-center justify-center border border-slate-600/30">
+                    <div className="text-center">
+                      <Lock className="h-8 w-8 text-slate-400 mx-auto mb-2" />
+                      <p className="text-slate-300 font-medium text-sm">Coming Soon</p>
+                      <p className="text-slate-500 text-xs">Squad configuration in progress</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>

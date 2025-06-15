@@ -13,23 +13,52 @@ interface VapiMessage {
   content?: string;
 }
 
-interface VapiSquadMemberConfig {
-  assistantId: string;
-  // Add other squad member specific configurations if needed
-  // e.g., name?: string, tools?: any[];
+interface VapiSquadMember {
+  assistantId?: string;
+  assistant?: {
+    name: string;
+    model: {
+      model: string;
+      provider: string;
+      messages?: Array<{
+        role: string;
+        content: string;
+      }>;
+      maxTokens?: number;
+      temperature?: number;
+    };
+    voice: {
+      voiceId: string;
+      provider: string;
+      fillerInjectionEnabled?: boolean;
+    };
+    transcriber?: {
+      model: string;
+      language: string;
+      provider: string;
+    };
+    firstMessage: string;
+    firstMessageMode: string;
+    backchannelingEnabled?: boolean;
+    backgroundDenoisingEnabled?: boolean;
+  };
+  assistantDestinations?: Array<{
+    type: string;
+    assistantName: string;
+    message: string;
+    description: string;
+  }>;
 }
 
 interface VapiSquadConfig {
   name: string;
-  members: VapiSquadMemberConfig[];
-  // Add other squad level configurations if needed
-  // e.g., firstMessage?: string;
+  members: VapiSquadMember[];
 }
 
 interface UseVapiOptions {
-  assistantId?: string; // For single assistant calls
-  squadId?: string; // For pre-configured squads on Vapi dashboard
-  squadConfig?: VapiSquadConfig; // For transient, dynamically configured squads
+  assistantId?: string;
+  squadId?: string;
+  squadConfig?: VapiSquadConfig;
   onMessage?: (message: VapiMessage) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
@@ -46,18 +75,18 @@ export const useVapi = (options: UseVapiOptions) => {
   const [vapiInstance, setVapiInstance] = useState<Vapi | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [volumeLevel, setVolumeLevel] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
 
-  // TODO: Add your Vapi Public Key here
-  // const publicKey = new Vapi(process.env.NEXT_PUBLIC_VAPI_WEB_TOKEN!); // Replace with your actual public key
-  // Corrected for Vite:
   const vapiPublicKey = import.meta.env.VITE_VAPI_PUBLIC_KEY;
 
-  const connect = useCallback(async (callConfig: { assistantId?: string; squadId?: string, squadConfig?: VapiSquadConfig }) => {
+  const connect = useCallback(async (callConfig: { 
+    assistantId?: string; 
+    squadId?: string; 
+    squadConfig?: VapiSquadConfig 
+  }) => {
     const { assistantId, squadId, squadConfig } = callConfig;
     if (isConnected || isLoading) return;
-  
-    // Check if public key is configured
-    // Check if public key is configured
+
     if (!vapiPublicKey || vapiPublicKey === "YOUR_VAPI_PUBLIC_KEY" || vapiPublicKey === undefined) {
       const errorMsg = "Vapi Public Key not configured. Please add your key to .env and ensure it's named VITE_VAPI_PUBLIC_KEY";
       setError(errorMsg);
@@ -69,8 +98,6 @@ export const useVapi = (options: UseVapiOptions) => {
     setError(null);
 
     try {
-      // const vapi = new Vapi(publicKey); // Original
-      // Corrected initialization:
       const vapi = new Vapi(vapiPublicKey!);
       
       // Set up event listeners
@@ -110,7 +137,6 @@ export const useVapi = (options: UseVapiOptions) => {
       vapi.on('message', (message) => {
         console.log('Received message:', message);
         
-        // Handle transcript messages
         if (message.type === 'transcript' && message.transcript) {
           options.onMessage?.({
             type: 'transcript',
@@ -121,7 +147,6 @@ export const useVapi = (options: UseVapiOptions) => {
           });
         }
         
-        // Handle other message types
         options.onMessage?.(message);
       });
 
@@ -134,11 +159,13 @@ export const useVapi = (options: UseVapiOptions) => {
         options.onError?.(error);
       });
 
-      // Start the call with either an assistantId, squadId, or a squad configuration
-      if (assistantId) {
+      // Start the call with squad configuration or assistant ID
+      if (squadConfig) {
+        await vapi.start({ squad: squadConfig });
+      } else if (assistantId) {
         await vapi.start(assistantId);
       } else if (squadId) {
-        await vapi.start({ squad: squadConfig });
+        await vapi.start({ squadId });
       } else {
         const errorMsg = "No assistantId, squadId, or squadConfig provided to connect.";
         setError(errorMsg);
@@ -146,6 +173,7 @@ export const useVapi = (options: UseVapiOptions) => {
         setIsLoading(false);
         return;
       }
+      
       setVapiInstance(vapi);
 
     } catch (err) {
@@ -158,10 +186,6 @@ export const useVapi = (options: UseVapiOptions) => {
     }
   }, [isConnected, isLoading, options, vapiPublicKey]);
 
-  // Ensure options always has a default value if not provided by the consumer
-  const defaultOptions: Partial<UseVapiOptions> = {};
-  const currentOptions = { ...defaultOptions, ...options };
-
   const disconnect = useCallback(async () => {
     if (!isConnected || !vapiInstance) return;
 
@@ -171,6 +195,7 @@ export const useVapi = (options: UseVapiOptions) => {
       setIsSpeaking(false);
       setVapiInstance(null);
       setVolumeLevel(0);
+      setIsMuted(false);
       options.onDisconnect?.();
     } catch (err) {
       console.error('Failed to disconnect from Vapi:', err);
@@ -203,6 +228,7 @@ export const useVapi = (options: UseVapiOptions) => {
     
     try {
       vapiInstance.setMuted(true);
+      setIsMuted(true);
     } catch (err) {
       console.error('Failed to mute:', err);
     }
@@ -213,6 +239,7 @@ export const useVapi = (options: UseVapiOptions) => {
     
     try {
       vapiInstance.setMuted(false);
+      setIsMuted(false);
     } catch (err) {
       console.error('Failed to unmute:', err);
     }
@@ -233,6 +260,7 @@ export const useVapi = (options: UseVapiOptions) => {
     error,
     isSpeaking,
     volumeLevel,
+    isMuted,
     connect,
     disconnect,
     sendMessage,

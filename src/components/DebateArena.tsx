@@ -9,6 +9,7 @@ import { ArenaBackground } from "@/components/ArenaBackground";
 import { SpeakingPlatform } from "@/components/SpeakingPlatform";
 import { CircularParticipants } from "@/components/CircularParticipants";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { getSquadConfig } from "@/config/squadConfigs";
 
 interface DebateArenaProps {
   debateId: string;
