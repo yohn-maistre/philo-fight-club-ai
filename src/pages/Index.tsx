@@ -28,8 +28,7 @@ const Index = () => {
           color: "red" 
         }
       ],
-      duration: "~15 min",
-      squadId: "YOUR_MORALITY_SQUAD_ID" // Add squad reference
+      duration: "~15 min"
     },
     {
       id: "free-will-debate",
@@ -50,8 +49,7 @@ const Index = () => {
           color: "purple" 
         }
       ],
-      duration: "~12 min",
-      squadId: "YOUR_FREEWILL_SQUAD_ID" // Add squad reference
+      duration: "~12 min"
     },
     {
       id: "knowledge-debate",
@@ -66,14 +64,13 @@ const Index = () => {
           color: "blue" 
         },
         { 
-          name: "Hume", 
+          name: "Hume",
           subtitle: "The Skeptic", 
           quote: "Reason is slave to the passions", 
           color: "purple" 
         }
       ],
-      duration: "~18 min",
-      squadId: "YOUR_KNOWLEDGE_SQUAD_ID" // Add squad reference
+      duration: "~18 min"
     }
   ];
 

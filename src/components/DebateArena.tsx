@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Mic, MicOff, Clock, Target, ChevronLeft, ChevronRight } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowLeft, Mic, MicOff, Clock, Target, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 import { useVapi } from "@/hooks/useVapi";
 
 interface DebateArenaProps {
@@ -21,6 +22,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const [currentChallengeSet, setCurrentChallengeSet] = useState(0);
   const [isUserMuted, setIsUserMuted] = useState(true);
   const [transcript, setTranscript] = useState<string[]>([]);
+  const [isTranscriptExpanded, setIsTranscriptExpanded] = useState(false);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
 
   // Vapi integration with improved message handling
@@ -46,23 +48,21 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     }
   });
 
-  // Get debate config based on ID - now with Squad configuration
+  // Get debate config based on ID - with proper assistant IDs for backend squad management
   const getDebateConfig = (id: string) => {
     const configs = {
       "morality-debate": {
         title: "The Morality Clash",
         topic: "Is morality objective or subjective?",
-        squadId: "YOUR_MORALITY_SQUAD_ID", // Replace with actual Squad ID
+        assistantId: "YOUR_MORALITY_ASSISTANT_ID", // This will route to the proper squad on backend
         philosophers: [{
           name: "Socrates",
           color: "emerald",
-          subtitle: "The Questioner",
-          assistantId: "YOUR_SOCRATES_ASSISTANT_ID" // Keep for reference
+          subtitle: "The Questioner"
         }, {
           name: "Nietzsche",
           color: "red",
-          subtitle: "The Hammer",
-          assistantId: "YOUR_NIETZSCHE_ASSISTANT_ID" // Keep for reference
+          subtitle: "The Hammer"
         }],
         statements: {
           philosopher1: ["Before we can discuss whether morality is objective, shouldn't we first examine what we mean by 'morality' itself? For how can we—", "You speak of strength and weakness, but I confess I do not understand these terms. What makes one soul stronger than another? Is it not possible that—", "Perhaps you are right, but I wonder... if there are no universal moral truths, then how can we say that creating one's own values is better than accepting traditional ones? For to say it is 'better' seems to imply—"],
@@ -72,17 +72,15 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
       "free-will-debate": {
         title: "The Freedom Fight",
         topic: "Do we have free will or are we determined?",
-        squadId: "YOUR_FREEWILL_SQUAD_ID", // Replace with actual Squad ID
+        assistantId: "YOUR_FREEWILL_ASSISTANT_ID", // This will route to the proper squad on backend
         philosophers: [{
           name: "Descartes",
           color: "blue",
-          subtitle: "The Dualist",
-          assistantId: "YOUR_DESCARTES_ASSISTANT_ID" // Keep for reference
+          subtitle: "The Dualist"
         }, {
           name: "Spinoza",
           color: "purple",
-          subtitle: "The Determinist",
-          assistantId: "YOUR_SPINOZA_ASSISTANT_ID" // Keep for reference
+          subtitle: "The Determinist"
         }],
         statements: {
           philosopher1: ["I think, therefore I am - and in this thinking, I discover my freedom to doubt, to affirm, to deny. The mind is distinct from matter and—", "But surely you must see that the very act of reasoning demonstrates our freedom? When I choose to doubt or to believe, this choice itself—", "The will is infinite in scope, though the understanding is finite. This is why error occurs - when the will extends beyond what the understanding—"],
@@ -95,7 +93,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
 
   const debateConfig = getDebateConfig(debateId);
 
-  // Update expressions every 3-5 seconds with proper cleanup
+  // Update expressions every 3-5 seconds
   useEffect(() => {
     const updateExpressions = () => {
       const newExpressions: {[key: string]: string} = {};
@@ -106,15 +104,11 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
       setPhilosopherExpressions(newExpressions);
     };
 
-    // Initial expressions
     updateExpressions();
-
-    // Set up interval with random timing between 3-5 seconds
     const interval = setInterval(() => {
       updateExpressions();
-    }, Math.random() * 2000 + 3000); // 3-5 seconds
+    }, Math.random() * 2000 + 3000);
 
-    // Cleanup function
     return () => clearInterval(interval);
   }, []);
 
@@ -133,12 +127,12 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     }
   }, [currentSpeaker, debateConfig]);
 
-  // Initialize Vapi connection with Squad instead of individual assistant
+  // Initialize Vapi connection with assistant ID (backend handles squad routing)
   useEffect(() => {
-    const squadId = debateConfig.squadId;
+    const assistantId = debateConfig.assistantId;
     
-    if (squadId && squadId !== "YOUR_MORALITY_SQUAD_ID" && squadId !== "YOUR_FREEWILL_SQUAD_ID") {
-      connect(squadId);
+    if (assistantId && assistantId !== "YOUR_MORALITY_ASSISTANT_ID" && assistantId !== "YOUR_FREEWILL_ASSISTANT_ID") {
+      connect(assistantId);
     }
 
     return () => {
@@ -209,7 +203,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
               <span>{challengeCount} challenges</span>
             </div>
             <Badge className={`${isConnected ? 'bg-green-500 hover:bg-green-600' : isLoading ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-red-500 hover:bg-red-600'} text-white animate-pulse`}>
-              {isConnected ? '🟢 SQUAD CONNECTED' : isLoading ? '🟡 CONNECTING SQUAD' : '🔴 SQUAD DISCONNECTED'}
+              {isConnected ? '🟢 CONNECTED' : isLoading ? '🟡 CONNECTING' : '🔴 DISCONNECTED'}
             </Badge>
           </div>
         </div>
@@ -222,9 +216,6 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2 font-serif">{debateConfig.title}</h1>
             <p className="text-slate-300 text-lg">"{debateConfig.topic}"</p>
-            <Badge variant="secondary" className="bg-slate-700 text-slate-300 mt-2">
-              Squad Debate: {debateConfig.philosophers.length} Philosophers
-            </Badge>
           </div>
 
           {/* Speakers Overview */}
@@ -252,7 +243,6 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                           )}
                         </div>
                         <p className="text-slate-400 text-sm mb-2">{philosopher.subtitle}</p>
-                        {/* Only show expressions for non-active philosophers */}
                         {!isActive && (
                           <p className="text-slate-300 text-xs italic">
                             {philosopherExpressions[philosopher.name] || "pondering existence"}
@@ -266,7 +256,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             </div>
           </div>
 
-          {/* Speaker Section */}
+          {/* Fixed Height Speech Container */}
           <div className="mb-8">
             <div className="text-center mb-6">
               <div className="flex items-center justify-center gap-3 mb-2">
@@ -285,10 +275,10 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
               </Badge>
             </div>
             
-            {/* Fixed Height Speech Container */}
-            <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 mb-8 min-h-[200px] flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-slate-200 text-xl leading-relaxed italic mb-6 max-w-3xl">
+            {/* Fixed Height Speech Container - 300px minimum height */}
+            <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 mb-8 h-80 flex items-center justify-center">
+              <div className="text-center max-w-3xl">
+                <p className="text-slate-200 text-xl leading-relaxed italic mb-6">
                   "{currentStatement}"
                 </p>
                 <div className="flex items-center justify-center gap-2">
@@ -338,39 +328,49 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             </div>
           </div>
 
-          {/* Live Transcript - Matching Philosopher Style */}
+          {/* Expandable Live Transcript */}
           {transcript.length > 0 && (
             <div className="mb-8">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-white mb-2 font-serif">LIVE DEBATE TRANSCRIPT</h3>
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <h3 className="text-2xl font-bold text-white font-serif">LIVE DEBATE TRANSCRIPT</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsTranscriptExpanded(!isTranscriptExpanded)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    {isTranscriptExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                  </Button>
+                </div>
                 <Badge variant="secondary" className="bg-slate-700 text-slate-300">
                   Real-time conversation
                 </Badge>
               </div>
               
-              <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/30 max-h-80 overflow-y-auto">
-                <div className="space-y-4">
-                  {transcript.map((message, index) => (
-                    <div key={index} className="border-l-2 border-slate-600/30 pl-4">
-                      <p className="text-slate-200 leading-relaxed">
-                        {message}
-                      </p>
-                    </div>
-                  ))}
-                  <div ref={transcriptEndRef} />
-                </div>
-                
-                {transcript.length > 0 && (
-                  <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-slate-700/30">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-slate-400 text-sm">Live conversation in progress...</span>
+              <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/30">
+                <ScrollArea className={`${isTranscriptExpanded ? 'h-96' : 'h-48'} transition-all duration-300`}>
+                  <div className="space-y-4 pr-4">
+                    {transcript.map((message, index) => (
+                      <div key={index} className="border-l-2 border-slate-600/30 pl-4">
+                        <p className="text-slate-200 leading-relaxed">
+                          {message}
+                        </p>
+                      </div>
+                    ))}
+                    <div ref={transcriptEndRef} />
                   </div>
-                )}
+                </ScrollArea>
+                
+                <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-slate-700/30">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-slate-400 text-sm">Live conversation in progress...</span>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Enhanced Socratic Challenge Toolkit with Slideshow */}
+          {/* Enhanced Socratic Challenge Toolkit */}
           <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/30">
             <div className="text-center mb-6">
               <h3 className="text-lg font-bold text-white mb-2">💭 Socratic Challenge Toolkit</h3>
