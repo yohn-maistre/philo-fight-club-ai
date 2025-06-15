@@ -9,19 +9,14 @@ interface SpeakingPlatformProps {
 
 export const SpeakingPlatform = ({ currentSpeaker, activeParticipant, currentStatement }: SpeakingPlatformProps) => {
   return (
-    <div className="relative">
-      {/* Platform Base with Glow */}
-      <div className="absolute -inset-8 bg-gradient-to-t from-yellow-400/20 via-yellow-400/10 to-transparent rounded-full blur-xl animate-pulse"></div>
-      
-      {/* Central Platform */}
-      <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-700/60 to-slate-800/80 backdrop-blur-sm rounded-3xl p-8 border-2 border-yellow-400/30 shadow-2xl">
-        {/* Spotlight Effect */}
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-gradient-to-b from-yellow-400/30 to-transparent rounded-full blur-sm"></div>
+    <div className="relative max-w-4xl mx-auto">
+      {/* Platform Base */}
+      <div className="relative bg-slate-800/60 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-slate-700/30 shadow-2xl">
         
         {/* Speaker Info */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="text-4xl animate-bounce" style={{ animationDuration: '2s' }}>
+            <div className="text-2xl sm:text-3xl md:text-4xl">
               {activeParticipant?.color === 'emerald' && '💭'}
               {activeParticipant?.color === 'red' && '🔥'}
               {activeParticipant?.color === 'blue' && '🧠'}
@@ -30,35 +25,30 @@ export const SpeakingPlatform = ({ currentSpeaker, activeParticipant, currentSta
               {currentSpeaker === 'moderator' && '⚖️'}
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-yellow-200 font-serif tracking-wide">
-                {activeParticipant?.name.toUpperCase() || 'MODERATOR'}
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white font-serif tracking-wide">
+                {activeParticipant?.name?.toUpperCase() || 'MODERATOR'}
               </h2>
-              <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-400/50 mt-2">
+              <p className="text-slate-400 text-sm font-medium mt-1">
                 {activeParticipant?.subtitle || 'The Moderator'}
-              </Badge>
+              </p>
             </div>
           </div>
         </div>
         
-        {/* Speech Container with Enhanced Styling */}
-        <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl p-8 border border-yellow-400/20 min-h-[200px] flex items-center justify-center">
-          <div className="text-center max-w-3xl">
-            <p className="text-yellow-100 text-xl leading-relaxed italic mb-6 font-serif">
+        {/* Clean Speech Container */}
+        <div className="bg-slate-900/40 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-600/20 min-h-[120px] sm:min-h-[160px] flex flex-col justify-center">
+          <div className="text-center">
+            <p className="text-slate-200 text-base sm:text-lg md:text-xl leading-relaxed italic mb-4 sm:mb-6 font-serif">
               "{currentStatement}"
             </p>
-            <div className="flex items-center justify-center gap-3">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-              </div>
-              <span className="text-yellow-300 font-medium">Speaking...</span>
+            
+            {/* Clean Speaking Indicator */}
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-slate-400 text-sm font-medium">Speaking...</span>
             </div>
           </div>
         </div>
-
-        {/* Platform Decoration */}
-        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-4 bg-gradient-to-t from-yellow-400/40 to-transparent rounded-full"></div>
       </div>
     </div>
   );

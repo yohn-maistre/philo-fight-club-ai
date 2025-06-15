@@ -1,6 +1,6 @@
 
-import { AnimatedButton } from "@/components/ui/animated-button";
-import { ArrowRight, Mic } from "lucide-react";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { Mic } from "lucide-react";
 
 interface HeroSectionProps {
   onEnterArena: () => void;
@@ -43,18 +43,11 @@ export const HeroSection = ({ onEnterArena }: HeroSectionProps) => {
             <span className="text-yellow-400 font-semibold"> Speak your challenges</span> and hear them respond to your questions in real-time.
           </p>
           
-          <AnimatedButton 
+          <InteractiveHoverButton 
             onClick={onEnterArena}
-            size="lg"
-            variant="shine"
-            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-white font-bold text-lg px-10 py-4 rounded-2xl shadow-lg hover:shadow-yellow-500/20"
-          >
-            <div className="flex items-center">
-              <Mic className="h-6 w-6 mr-3 animate-pulse" />
-              START VOICE DEBATE
-              <ArrowRight className="h-6 w-6 ml-3" />
-            </div>
-          </AnimatedButton>
+            text="ENTER"
+            className="w-48 h-14 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-yellow-500/20 border-yellow-500/30"
+          />
           
           <p className="text-slate-400 text-sm mt-4">
             🎤 Real-time voice interaction with AI philosophers

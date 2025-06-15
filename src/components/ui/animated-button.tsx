@@ -1,17 +1,19 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Button, ButtonProps } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
-interface AnimatedButtonProps extends ButtonProps {
+interface AnimatedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  variant?: "default" | "shine" | "pulse" | "glow";
+  animationVariant?: "default" | "shine" | "pulse" | "glow";
+  size?: "default" | "sm" | "lg" | "icon";
 }
 
 export const AnimatedButton = ({ 
   children, 
   className, 
-  variant = "default",
+  animationVariant = "default",
+  size = "default",
   ...props 
 }: AnimatedButtonProps) => {
   const variants = {
@@ -28,10 +30,11 @@ export const AnimatedButton = ({
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
     >
       <Button
-        className={cn(variants[variant], className)}
+        className={cn(variants[animationVariant], className)}
+        size={size}
         {...props}
       >
-        {variant === "shine" && (
+        {animationVariant === "shine" && (
           <div className="absolute inset-0 -top-full group-hover:top-full bg-gradient-to-b from-transparent via-white/20 to-transparent transition-all duration-500 transform skew-y-12" />
         )}
         {children}

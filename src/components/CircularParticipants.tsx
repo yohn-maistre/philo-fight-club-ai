@@ -9,7 +9,7 @@ interface CircularParticipantsProps {
 
 export const CircularParticipants = ({ currentSpeaker, debateConfig, philosopherExpressions }: CircularParticipantsProps) => {
   return (
-    <div className="flex justify-center items-center space-x-8 md:space-x-12 lg:space-x-16">
+    <div className="flex justify-center items-center space-x-4 sm:space-x-6 md:space-x-8 lg:space-x-12 px-4">
       {/* Philosopher 1 */}
       {debateConfig.philosophers[0] && (
         <CircularParticipantCard
