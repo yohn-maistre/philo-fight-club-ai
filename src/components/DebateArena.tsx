@@ -245,30 +245,32 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
       {/* Arena Background with Atmosphere */}
       <ArenaBackground />
       
-      {/* Clean Modern Header */}
-      <div className="relative z-10 px-6 py-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Button 
-            variant="ghost" 
-            onClick={onBack} 
-            className="text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-all duration-200"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Exit Arena
-          </Button>
-          
-          <div className="flex items-center gap-6 text-slate-400">
-            <div className="flex items-center gap-2 bg-slate-800/30 px-4 py-2 rounded-full backdrop-blur-sm border border-slate-700/30">
-              <Clock className="h-4 w-4" />
-              <span className="font-mono">{formatTime(debateTime)}</span>
+      {/* Modernized Mobile-First Header */}
+      <div className="relative z-10 px-4 sm:px-6 py-4 sm:py-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <Button 
+              variant="ghost" 
+              onClick={onBack} 
+              className="text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-all duration-200 self-start"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Exit Arena
+            </Button>
+            
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-slate-400 text-sm sm:text-base">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-800/30 px-2 sm:px-4 py-1.5 sm:py-2 rounded-full backdrop-blur-sm border border-slate-700/30">
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="font-mono text-xs sm:text-sm">{formatTime(debateTime)}</span>
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-800/30 px-2 sm:px-4 py-1.5 sm:py-2 rounded-full backdrop-blur-sm border border-slate-700/30">
+                <Target className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">{challengeCount} challenges</span>
+              </div>
+              <Badge className={`${isConnected ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : vapiLoading ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'} backdrop-blur-sm text-xs sm:text-sm px-2 sm:px-3 py-1`}>
+                {isConnected ? '🟢 LIVE' : vapiLoading ? '🟡 CONNECTING' : '🔴 OFFLINE'}
+              </Badge>
             </div>
-            <div className="flex items-center gap-2 bg-slate-800/30 px-4 py-2 rounded-full backdrop-blur-sm border border-slate-700/30">
-              <Target className="h-4 w-4" />
-              <span>{challengeCount} challenges</span>
-            </div>
-            <Badge className={`${isConnected ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : vapiLoading ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'} backdrop-blur-sm`}>
-              {isConnected ? '🟢 LIVE' : vapiLoading ? '🟡 CONNECTING' : '🔴 OFFLINE'}
-            </Badge>
           </div>
         </div>
       </div>
@@ -348,32 +350,40 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             </p>
           </div>
 
-          {/* Clean Transcript Section */}
+          {/* Sleeker Transcript Section */}
           {transcript.length > 0 && (
             <div className="mb-12">
-              <div className="bg-slate-900/40 backdrop-blur-sm rounded-3xl p-8 border border-slate-700/20 shadow-2xl">
+              <div className="bg-gradient-to-br from-slate-900/60 via-slate-800/40 to-slate-900/60 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-slate-700/20 shadow-2xl">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                    <h3 className="text-xl font-semibold text-white">Live Transcript</h3>
+                    <div className="relative">
+                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                      <div className="absolute inset-0 w-3 h-3 bg-green-400/30 rounded-full animate-ping"></div>
+                    </div>
+                    <h3 className="text-xl font-semibold text-white bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                      Live Transcript
+                    </h3>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsTranscriptExpanded(!isTranscriptExpanded)}
-                    className="text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-xl"
+                    className="text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-xl backdrop-blur-sm border border-slate-600/20"
                   >
                     {isTranscriptExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                   </Button>
                 </div>
                 
                 <ScrollArea className={`${isTranscriptExpanded ? 'h-80' : 'h-48'} transition-all duration-300`}>
-                  <div className="space-y-3 pr-4">
+                  <div className="space-y-4 pr-4">
                     {transcript.map((message, index) => (
-                      <div key={index} className="border-l-2 border-slate-600/20 pl-4 py-2">
-                        <p className="text-slate-200 leading-relaxed text-sm">
-                          {message}
-                        </p>
+                      <div key={index} className="group relative">
+                        <div className="absolute left-0 top-2 w-0.5 h-6 bg-gradient-to-b from-emerald-400/50 to-transparent rounded-full"></div>
+                        <div className="pl-6 py-2 bg-slate-800/20 backdrop-blur-sm rounded-xl border-l-2 border-emerald-400/20 hover:border-emerald-400/40 transition-all duration-200">
+                          <p className="text-slate-200 leading-relaxed text-sm group-hover:text-white transition-colors">
+                            {message}
+                          </p>
+                        </div>
                       </div>
                     ))}
                     <div ref={transcriptEndRef} />

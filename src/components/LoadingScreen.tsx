@@ -41,7 +41,7 @@ export const LoadingScreen = ({ message = "Preparing the arena..." }: LoadingScr
           className="mb-8"
         >
           <div className="flex justify-center mb-4">
-            <Spinner size="lg" color="slate" />
+            <Spinner size="lg" color="white" />
           </div>
           
           <motion.div
