@@ -332,7 +332,7 @@ const Index = () => {
         <MarqueeAnimation
           direction="left"
           baseVelocity={-2}
-          className="bg-gradient-to-r from-yellow-600 to-yellow-500 bg-clip-text text-transparent py-4 text-2xl md:text-4xl font-serif tracking-wide"
+          className="bg-yellow-400 text-slate-900 py-4 text-2xl md:text-4xl font-serif tracking-wide font-bold"
         >
           The first rule of Philosophy Fight Club is: you MUST talk about Philosophy Fight Club
         </MarqueeAnimation>
