@@ -159,13 +159,18 @@ export const useVapi = (options: UseVapiOptions) => {
         options.onError?.(error);
       });
 
-      // Start the call with squad configuration or assistant ID
+      // Start the call with proper Vapi SDK format
       if (squadConfig) {
-        await vapi.start({ squad: squadConfig });
+        // Use the squad configuration directly as expected by Vapi SDK
+        await vapi.start({
+          squad: squadConfig
+        });
       } else if (assistantId) {
         await vapi.start(assistantId);
       } else if (squadId) {
-        await vapi.start({ squadId });
+        await vapi.start({
+          squadId: squadId
+        });
       } else {
         const errorMsg = "No assistantId, squadId, or squadConfig provided to connect.";
         setError(errorMsg);

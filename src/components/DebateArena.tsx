@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +21,7 @@ interface DebateArenaProps {
 const absurdExpressions = ["adjusting his toga dramatically", "counting invisible sheep", "practicing air guitar solos", "doing tiny desk push-ups", "organizing his beard hair by length", "sketching doodles of cats", "humming show tunes quietly", "tapping morse code with his fingers", "doing interpretive dance moves", "practicing magic tricks", "folding origami cranes", "shadow boxing with wisdom", "playing invisible chess", "conducting an invisible orchestra", "doing breathing exercises", "stretching like a cat", "swinging his feet while listening", "sitting grumpily with arms crossed", "twirling his mustache thoughtfully", "cleaning his fingernails", "stacking imaginary blocks", "doing neck rolls", "practicing facial expressions in a mirror", "knitting an invisible scarf"];
 
 export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [currentSpeaker, setCurrentSpeaker] = useState<'philosopher1' | 'philosopher2' | 'moderator' | 'user'>('moderator');
   const [challengeCount, setChallengeCount] = useState(0);
   const [debateTime, setDebateTime] = useState(0);
@@ -30,22 +31,19 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const [isUserMuted, setIsUserMuted] = useState(true);
   const [transcript, setTranscript] = useState<string[]>([]);
   const [isTranscriptExpanded, setIsTranscriptExpanded] = useState(false);
+  const [currentSpeakerName, setCurrentSpeakerName] = useState<string>('Moderator');
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Loading effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+  // Get squad configuration
+  const squadConfig = getSquadConfig(debateId);
 
   // Vapi integration with improved message handling
-  const { isConnected, isLoading: vapiLoading, error, connect, disconnect, sendMessage } = useVapi({
+  const { isConnected, isLoading: vapiLoading, error, connect, disconnect, sendMessage, mute, unmute, isMuted } = useVapi({
     onConnect: () => {
       console.log('Connected to Vapi');
       setTranscript(prev => [...prev, 'System: Connected to voice debate']);
+      setIsInitialLoading(false);
       toast({
         title: "Connected",
         description: "Voice debate connection established",
@@ -58,13 +56,26 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     onMessage: (message) => {
       console.log('Received message from Vapi:', message);
       if (message.transcript) {
-        const speaker = message.transcript.speaker === 'user' ? 'You' : 'AI Philosopher';
+        const speaker = message.transcript.speaker === 'user' ? 'You' : message.transcript.speaker || 'AI';
         setTranscript(prev => [...prev, `${speaker}: ${message.transcript!.transcript}`]);
+        
+        // Update current speaker based on transcript
+        if (message.transcript.speaker !== 'user') {
+          setCurrentSpeakerName(message.transcript.speaker || 'AI');
+          setCurrentStatement(message.transcript.transcript);
+        }
       }
+    },
+    onSpeechStart: () => {
+      console.log('Speech started - someone is speaking');
+    },
+    onSpeechEnd: () => {
+      console.log('Speech ended - silence detected');
     },
     onError: (error) => {
       console.error('Vapi error:', error);
       setTranscript(prev => [...prev, `System: Error - ${error.message || 'Connection failed'}`]);
+      setIsInitialLoading(false);
       toast({
         title: "Connection Error",
         description: error.message || "Failed to connect to voice debate",
@@ -73,13 +84,22 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     }
   });
 
+  // Initialize loading screen until Vapi connection is established
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isConnected && !vapiLoading) {
+        setIsInitialLoading(false);
+      }
+    }, 10000); // 10 second timeout
+    return () => clearTimeout(timer);
+  }, [isConnected, vapiLoading]);
+
   // Get debate config based on ID
   const getDebateConfig = (id: string) => {
     const configs = {
       "morality-debate": {
         title: "The Morality Clash",
         topic: "Is morality objective or subjective?",
-        assistantId: "YOUR_MORALITY_ASSISTANT_ID",
         philosophers: [{
           name: "Socrates",
           color: "emerald",
@@ -93,17 +113,11 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
           name: "Aristotle",
           color: "blue",
           subtitle: "The Moderator"
-        },
-        statements: {
-          philosopher1: ["Before we can discuss whether morality is objective, shouldn't we first examine what we mean by 'morality' itself? For how can we—", "You speak of strength and weakness, but I confess I do not understand these terms. What makes one soul stronger than another? Is it not possible that—", "Perhaps you are right, but I wonder... if there are no universal moral truths, then how can we say that creating one's own values is better than accepting traditional ones? For to say it is 'better' seems to imply—"],
-          philosopher2: ["Your precious 'objective morality' is nothing but the bleating of weak souls who lack the courage to create their own values! The Übermensch transcends such slave morality and—", "What you call 'good' and 'evil' are merely human constructions, created by those too cowardly to embrace their own power! True strength lies in—", "The masses cling to their moral absolutes because they fear the terrifying freedom of creating meaning for themselves! But the strong individual—"],
-          moderator: ["Welcome to today's philosophical debate on the nature of morality. Let us begin by establishing our fundamental positions...", "An interesting point has been raised. Let us explore this further before moving to our next consideration...", "I believe we should now turn our attention to the implications of what has been discussed..."]
         }
       },
       "free-will-debate": {
         title: "The Freedom Fight",
         topic: "Do we have free will or are we determined?",
-        assistantId: "YOUR_FREEWILL_ASSISTANT_ID",
         philosophers: [{
           name: "Descartes",
           color: "blue",
@@ -117,11 +131,24 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
           name: "Kant",
           color: "amber",
           subtitle: "The Synthesizer"
-        },
-        statements: {
-          philosopher1: ["I think, therefore I am - and in this thinking, I discover my freedom to doubt, to affirm, to deny. The mind is distinct from matter and—", "But surely you must see that the very act of reasoning demonstrates our freedom? When I choose to doubt or to believe, this choice itself—", "The will is infinite in scope, though the understanding is finite. This is why error occurs - when the will extends beyond what the understanding—"],
-          philosopher2: ["All things are determined by the necessity of divine nature to exist and operate in a certain way. What you call 'free will' is merely—", "Men believe themselves free because they are conscious of their desires but ignorant of the causes that determine them. Every action follows—", "The mind's power is defined by its power of action. When we understand the causes that determine us, we achieve a higher form of freedom through—"],
-          moderator: ["Today we examine the fundamental question of human agency and determination...", "Let us carefully consider the implications of these opposing viewpoints...", "Perhaps we might find a synthesis between these seemingly contradictory positions..."]
+        }
+      },
+      "knowledge-debate": {
+        title: "The Truth Battle",
+        topic: "Does knowledge come from reason or experience?",
+        philosophers: [{
+          name: "Kant",
+          color: "blue",
+          subtitle: "The Synthesizer"
+        }, {
+          name: "Hume",
+          color: "purple",
+          subtitle: "The Skeptic"
+        }],
+        moderator: {
+          name: "Aristotle",
+          color: "amber",
+          subtitle: "The Logician"
         }
       }
     };
@@ -158,24 +185,17 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     return () => clearInterval(timer);
   }, []);
 
+  // Initialize Vapi connection with squad config
   useEffect(() => {
-    const speaker = currentSpeaker;
-    const statements = debateConfig.statements[speaker];
-    if (statements) {
-      setCurrentStatement(statements[Math.floor(Math.random() * statements.length)]);
-    }
-  }, [currentSpeaker, debateConfig]);
-
-  // Initialize Vapi connection with assistant ID
-  useEffect(() => {
-    const assistantId = debateConfig.assistantId;
-    
-    if (assistantId && assistantId !== "YOUR_MORALITY_ASSISTANT_ID" && assistantId !== "YOUR_FREEWILL_ASSISTANT_ID") {
-      connect(assistantId);
-    } else if (error) {
+    if (squadConfig) {
+      console.log('Connecting to Vapi with squad config:', squadConfig);
+      connect({ squadConfig });
+    } else {
+      console.error('No squad config found for debate:', debateId);
+      setIsInitialLoading(false);
       toast({
-        title: "Setup Required",
-        description: "Please configure your Vapi Public Key and Assistant ID",
+        title: "Configuration Error",
+        description: "No squad configuration found for this debate",
         variant: "destructive",
       });
     }
@@ -183,16 +203,16 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     return () => {
       disconnect();
     };
-  }, [connect, disconnect, debateConfig, error, toast]);
+  }, [connect, disconnect, squadConfig, debateId, toast]);
 
   // Auto-scroll transcript to bottom
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcript]);
 
-  // Show loading screen
-  if (isLoading) {
-    return <LoadingScreen message="Preparing the philosophical arena..." />;
+  // Show loading screen until Vapi connection is established
+  if (isInitialLoading || (vapiLoading && !isConnected)) {
+    return <LoadingScreen message="Connecting to the philosophical arena..." />;
   }
 
   const formatTime = (seconds: number) => {
@@ -202,9 +222,13 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   };
 
   const handleMuteToggle = () => {
-    setIsUserMuted(!isUserMuted);
-    if (!isUserMuted) {
+    if (isMuted) {
+      unmute();
+      setIsUserMuted(false);
       setChallengeCount(prev => prev + 1);
+    } else {
+      mute();
+      setIsUserMuted(true);
     }
   };
 
@@ -222,12 +246,20 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     setCurrentChallengeSet(prev => (prev - 1 + socraticChallenges.length) % socraticChallenges.length);
   };
 
-  // Get active participant info
+  // Get active participant info based on current speaker name
   const getActiveParticipant = () => {
-    if (currentSpeaker === 'philosopher1') return debateConfig.philosophers[0];
-    if (currentSpeaker === 'philosopher2') return debateConfig.philosophers[1];
-    if (currentSpeaker === 'moderator') return debateConfig.moderator;
-    return null;
+    // Try to match current speaker name with philosophers or moderator
+    const philosopher1 = debateConfig.philosophers.find(p => 
+      p.name.toLowerCase() === currentSpeakerName.toLowerCase()
+    );
+    if (philosopher1) return philosopher1;
+    
+    if (debateConfig.moderator.name.toLowerCase() === currentSpeakerName.toLowerCase()) {
+      return debateConfig.moderator;
+    }
+    
+    // Default to moderator if no match
+    return debateConfig.moderator;
   };
 
   const activeParticipant = getActiveParticipant();
@@ -309,7 +341,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             <SpeakingPlatform 
               currentSpeaker={currentSpeaker}
               activeParticipant={activeParticipant}
-              currentStatement={currentStatement}
+              currentStatement={currentStatement || "Welcome to the philosophical arena..."}
             />
           </div>
             

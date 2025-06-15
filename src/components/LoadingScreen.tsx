@@ -60,6 +60,19 @@ export const LoadingScreen = ({ message = "Preparing the arena..." }: LoadingScr
         >
           {message}
         </motion.p>
+        
+        {/* Connection Status */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2, duration: 0.6 }}
+          className="mt-6"
+        >
+          <div className="flex items-center justify-center gap-2 text-amber-400 text-xs">
+            <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+            <span>Establishing voice connection...</span>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
