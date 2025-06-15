@@ -28,7 +28,8 @@ const Index = () => {
           color: "red" 
         }
       ],
-      duration: "~15 min"
+      duration: "~15 min",
+      squadId: "YOUR_MORALITY_SQUAD_ID" // Add squad reference
     },
     {
       id: "free-will-debate",
@@ -49,7 +50,8 @@ const Index = () => {
           color: "purple" 
         }
       ],
-      duration: "~12 min"
+      duration: "~12 min",
+      squadId: "YOUR_FREEWILL_SQUAD_ID" // Add squad reference
     },
     {
       id: "knowledge-debate",
@@ -70,7 +72,8 @@ const Index = () => {
           color: "purple" 
         }
       ],
-      duration: "~18 min"
+      duration: "~18 min",
+      squadId: "YOUR_KNOWLEDGE_SQUAD_ID" // Add squad reference
     }
   ];
 

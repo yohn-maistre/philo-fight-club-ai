@@ -46,22 +46,23 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     }
   });
 
-  // Get debate config based on ID
+  // Get debate config based on ID - now with Squad configuration
   const getDebateConfig = (id: string) => {
     const configs = {
       "morality-debate": {
         title: "The Morality Clash",
         topic: "Is morality objective or subjective?",
+        squadId: "YOUR_MORALITY_SQUAD_ID", // Replace with actual Squad ID
         philosophers: [{
           name: "Socrates",
           color: "emerald",
           subtitle: "The Questioner",
-          assistantId: "YOUR_SOCRATES_ASSISTANT_ID" // Replace with actual ID
+          assistantId: "YOUR_SOCRATES_ASSISTANT_ID" // Keep for reference
         }, {
           name: "Nietzsche",
           color: "red",
           subtitle: "The Hammer",
-          assistantId: "YOUR_NIETZSCHE_ASSISTANT_ID" // Replace with actual ID
+          assistantId: "YOUR_NIETZSCHE_ASSISTANT_ID" // Keep for reference
         }],
         statements: {
           philosopher1: ["Before we can discuss whether morality is objective, shouldn't we first examine what we mean by 'morality' itself? For how can we—", "You speak of strength and weakness, but I confess I do not understand these terms. What makes one soul stronger than another? Is it not possible that—", "Perhaps you are right, but I wonder... if there are no universal moral truths, then how can we say that creating one's own values is better than accepting traditional ones? For to say it is 'better' seems to imply—"],
@@ -71,16 +72,17 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
       "free-will-debate": {
         title: "The Freedom Fight",
         topic: "Do we have free will or are we determined?",
+        squadId: "YOUR_FREEWILL_SQUAD_ID", // Replace with actual Squad ID
         philosophers: [{
           name: "Descartes",
           color: "blue",
           subtitle: "The Dualist",
-          assistantId: "YOUR_DESCARTES_ASSISTANT_ID" // Replace with actual ID
+          assistantId: "YOUR_DESCARTES_ASSISTANT_ID" // Keep for reference
         }, {
           name: "Spinoza",
           color: "purple",
           subtitle: "The Determinist",
-          assistantId: "YOUR_SPINOZA_ASSISTANT_ID" // Replace with actual ID
+          assistantId: "YOUR_SPINOZA_ASSISTANT_ID" // Keep for reference
         }],
         statements: {
           philosopher1: ["I think, therefore I am - and in this thinking, I discover my freedom to doubt, to affirm, to deny. The mind is distinct from matter and—", "But surely you must see that the very act of reasoning demonstrates our freedom? When I choose to doubt or to believe, this choice itself—", "The will is infinite in scope, though the understanding is finite. This is why error occurs - when the will extends beyond what the understanding—"],
@@ -131,20 +133,18 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     }
   }, [currentSpeaker, debateConfig]);
 
-  // Initialize Vapi connection when component mounts
+  // Initialize Vapi connection with Squad instead of individual assistant
   useEffect(() => {
-    // Get the current active philosopher's assistant ID
-    const activePhilosopher = currentSpeaker === 'philosopher1' ? debateConfig.philosophers[0] : debateConfig.philosophers[1];
-    const assistantId = activePhilosopher.assistantId;
+    const squadId = debateConfig.squadId;
     
-    if (assistantId && assistantId !== "YOUR_SOCRATES_ASSISTANT_ID") { // Only connect if real ID is provided
-      connect(assistantId);
+    if (squadId && squadId !== "YOUR_MORALITY_SQUAD_ID" && squadId !== "YOUR_FREEWILL_SQUAD_ID") {
+      connect(squadId);
     }
 
     return () => {
       disconnect();
     };
-  }, [connect, disconnect, currentSpeaker, debateConfig]);
+  }, [connect, disconnect, debateConfig]);
 
   // Auto-scroll transcript to bottom
   useEffect(() => {
@@ -209,7 +209,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
               <span>{challengeCount} challenges</span>
             </div>
             <Badge className={`${isConnected ? 'bg-green-500 hover:bg-green-600' : isLoading ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-red-500 hover:bg-red-600'} text-white animate-pulse`}>
-              {isConnected ? '🟢 CONNECTED' : isLoading ? '🟡 CONNECTING' : '🔴 DISCONNECTED'}
+              {isConnected ? '🟢 SQUAD CONNECTED' : isLoading ? '🟡 CONNECTING SQUAD' : '🔴 SQUAD DISCONNECTED'}
             </Badge>
           </div>
         </div>
@@ -222,6 +222,9 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2 font-serif">{debateConfig.title}</h1>
             <p className="text-slate-300 text-lg">"{debateConfig.topic}"</p>
+            <Badge variant="secondary" className="bg-slate-700 text-slate-300 mt-2">
+              Squad Debate: {debateConfig.philosophers.length} Philosophers
+            </Badge>
           </div>
 
           {/* Speakers Overview */}

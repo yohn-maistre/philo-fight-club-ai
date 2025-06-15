@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import Vapi from '@vapi-ai/web';
 
@@ -30,7 +29,7 @@ export const useVapi = (options: UseVapiOptions = {}) => {
   // TODO: Add your Vapi Public Key here
   const publicKey = "YOUR_VAPI_PUBLIC_KEY"; // Replace with your actual public key
 
-  const connect = useCallback(async (assistantId: string) => {
+  const connect = useCallback(async (squadId: string) => {
     if (isConnected || isLoading) return;
 
     setIsLoading(true);
@@ -91,13 +90,15 @@ export const useVapi = (options: UseVapiOptions = {}) => {
         options.onError?.(error);
       });
 
-      // Start the call
-      await vapi.start(assistantId);
+      // Start the call with Squad instead of individual assistant
+      await vapi.start({
+        squadId: squadId
+      });
       setVapiInstance(vapi);
 
     } catch (err) {
-      console.error('Failed to connect to Vapi:', err);
-      setError(err instanceof Error ? err.message : 'Failed to connect to Vapi');
+      console.error('Failed to connect to Vapi Squad:', err);
+      setError(err instanceof Error ? err.message : 'Failed to connect to Vapi Squad');
       setIsLoading(false);
       options.onError?.(err);
     }
