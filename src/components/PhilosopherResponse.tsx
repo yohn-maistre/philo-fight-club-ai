@@ -31,7 +31,7 @@ export const PhilosopherResponse = ({ philosopher, onContinue, onNewChallenge }:
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <Badge className="bg-green-500 hover:bg-green-600 text-white text-lg px-6 py-3 mb-6">
+          <Badge className="bg-green-500/10 border border-green-500/20 text-green-400 text-lg px-6 py-3 mb-6 backdrop-blur-sm">
             ✅ CHALLENGE RESPONDED TO
           </Badge>
           <h1 className="text-3xl font-bold text-white mb-4">
@@ -68,22 +68,21 @@ export const PhilosopherResponse = ({ philosopher, onContinue, onNewChallenge }:
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-center gap-8">
+        <div className="flex justify-center gap-6">
           <Button 
             onClick={onNewChallenge}
-            className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold px-10 py-6 rounded-2xl text-lg hover:transform hover:scale-105 transition-all shadow-lg"
+            className="bg-slate-800/50 hover:bg-slate-700/70 border border-slate-600/50 hover:border-slate-500/70 text-white font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg"
           >
-            <Mic className="h-6 w-6 mr-3" />
+            <Mic className="h-5 w-5 mr-2" />
             Follow-up Challenge
           </Button>
           
           <Button 
             onClick={onContinue}
-            variant="outline"
-            className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white font-semibold px-10 py-6 rounded-2xl text-lg hover:transform hover:scale-105 transition-all"
+            className="bg-blue-600/20 hover:bg-blue-500/30 border border-blue-500/30 hover:border-blue-400/50 text-blue-300 hover:text-blue-200 font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105"
           >
             Continue Debate
-            <ArrowRight className="h-6 w-6 ml-3" />
+            <ArrowRight className="h-5 w-5 ml-2" />
           </Button>
         </div>
       </div>
