@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +65,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
       "morality-debate": {
         title: "The Morality Clash",
         topic: "Is morality objective or subjective?",
-        assistantId: "YOUR_MORALITY_ASSISTANT_ID", // Replace with your actual assistant ID
+        assistantId: "YOUR_MORALITY_ASSISTANT_ID",
         philosophers: [{
           name: "Socrates",
           color: "emerald",
@@ -90,7 +89,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
       "free-will-debate": {
         title: "The Freedom Fight",
         topic: "Do we have free will or are we determined?",
-        assistantId: "YOUR_FREEWILL_ASSISTANT_ID", // Replace with your actual assistant ID
+        assistantId: "YOUR_FREEWILL_ASSISTANT_ID",
         philosophers: [{
           name: "Descartes",
           color: "blue",
@@ -125,7 +124,6 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
         const randomExpression = absurdExpressions[Math.floor(Math.random() * absurdExpressions.length)];
         newExpressions[philosopher.name] = randomExpression;
       });
-      // Add moderator expression
       const randomExpression = absurdExpressions[Math.floor(Math.random() * absurdExpressions.length)];
       newExpressions[debateConfig.moderator.name] = randomExpression;
       setPhilosopherExpressions(newExpressions);
@@ -161,7 +159,6 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     if (assistantId && assistantId !== "YOUR_MORALITY_ASSISTANT_ID" && assistantId !== "YOUR_FREEWILL_ASSISTANT_ID") {
       connect(assistantId);
     } else if (error) {
-      // Show error if API key is not configured
       toast({
         title: "Setup Required",
         description: "Please configure your Vapi Public Key and Assistant ID",
@@ -260,29 +257,37 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             <p className="text-slate-300 text-lg">"{debateConfig.topic}"</p>
           </div>
 
-          {/* Participants Overview with Moderator in Center */}
+          {/* Participants Overview with Improved Styling */}
           <div className="mb-8">
-            <h3 className="text-lg font-bold text-white mb-4 text-center">Debate Participants</h3>
+            <h3 className="text-lg font-bold text-white mb-6 text-center">Debate Participants</h3>
             
-            {/* Triangular Layout: Moderator at top, philosophers below */}
-            <div className="flex flex-col items-center gap-6">
-              {/* Moderator at top center */}
-              <div className="w-full max-w-md">
-                <div className={`bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border transition-all duration-300 ${currentSpeaker === 'moderator' ? 'border-blue-500/50 shadow-lg shadow-blue-500/10' : 'border-slate-700/30'}`}>
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">⚖️</div>
-                    <div className="flex-1">
-                      <div className={`flex items-center gap-2 ${currentSpeaker === 'moderator' ? 'justify-center' : ''}`}>
-                        <h4 className="font-bold text-white">{debateConfig.moderator.name}</h4>
-                        {currentSpeaker === 'moderator' && (
-                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                            MODERATING
-                          </Badge>
-                        )}
-                      </div>
-                      <p className={`text-slate-400 text-sm mb-2 ${currentSpeaker === 'moderator' ? 'text-center' : ''}`}>{debateConfig.moderator.subtitle}</p>
+            {/* Enhanced Triangular Layout */}
+            <div className="flex flex-col items-center gap-8">
+              {/* Moderator at top center - Enhanced Design */}
+              <div className="w-full max-w-lg">
+                <div className={`bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm rounded-3xl p-6 border-2 transition-all duration-500 shadow-xl ${
+                  currentSpeaker === 'moderator' 
+                    ? 'border-amber-400/60 shadow-amber-500/20 ring-4 ring-amber-400/20 scale-105' 
+                    : 'border-slate-600/40 hover:border-slate-500/50'
+                }`}>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="text-4xl mb-3">⚖️</div>
+                    <div className="space-y-2">
+                      <h4 className="font-bold text-white text-xl font-serif">{debateConfig.moderator.name}</h4>
+                      <Badge className={`${
+                        currentSpeaker === 'moderator' 
+                          ? 'bg-amber-500/30 text-amber-200 border-amber-400/50' 
+                          : 'bg-slate-600/30 text-slate-300 border-slate-500/30'
+                      } text-sm px-3 py-1`}>
+                        {debateConfig.moderator.subtitle}
+                      </Badge>
+                      {currentSpeaker === 'moderator' && (
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs animate-pulse">
+                          MODERATING
+                        </Badge>
+                      )}
                       {currentSpeaker !== 'moderator' && (
-                        <p className="text-slate-300 text-xs italic">
+                        <p className="text-slate-400 text-sm italic mt-2">
                           {philosopherExpressions[debateConfig.moderator.name] || "maintaining order"}
                         </p>
                       )}
@@ -291,31 +296,47 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                 </div>
               </div>
 
-              {/* Philosophers below in a row */}
-              <div className="grid md:grid-cols-2 gap-4 w-full">
+              {/* Philosophers below with Enhanced Design */}
+              <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
                 {debateConfig.philosophers.map((philosopher, index) => {
                   const isActive = currentSpeaker === 'philosopher1' && index === 0 || currentSpeaker === 'philosopher2' && index === 1;
+                  const colorMap = {
+                    emerald: 'emerald-400',
+                    red: 'red-400', 
+                    blue: 'blue-400',
+                    purple: 'purple-400'
+                  };
+                  const borderColor = colorMap[philosopher.color as keyof typeof colorMap] || 'blue-400';
+                  
                   return (
-                    <div key={philosopher.name} className={`bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border transition-all duration-300 ${isActive ? 'border-blue-500/50 shadow-lg shadow-blue-500/10' : 'border-slate-700/30'}`}>
-                      <div className="flex items-center gap-3">
-                        <div className="text-2xl">
+                    <div key={philosopher.name} className={`bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm rounded-3xl p-6 border-2 transition-all duration-500 shadow-xl ${
+                      isActive 
+                        ? `border-${borderColor}/60 shadow-${philosopher.color}-500/20 ring-4 ring-${borderColor}/20 scale-105` 
+                        : 'border-slate-600/40 hover:border-slate-500/50'
+                    }`}>
+                      <div className="flex flex-col items-center text-center">
+                        <div className="text-4xl mb-3">
                           {philosopher.color === 'emerald' && '💭'}
                           {philosopher.color === 'red' && '🔥'}
                           {philosopher.color === 'blue' && '🧠'}
                           {philosopher.color === 'purple' && '⚡'}
                         </div>
-                        <div className="flex-1">
-                          <div className={`flex items-center gap-2 ${isActive ? 'justify-center' : ''}`}>
-                            <h4 className="font-bold text-white">{philosopher.name}</h4>
-                            {isActive && (
-                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                                SPEAKING
-                              </Badge>
-                            )}
-                          </div>
-                          <p className={`text-slate-400 text-sm mb-2 ${isActive ? 'text-center' : ''}`}>{philosopher.subtitle}</p>
+                        <div className="space-y-2">
+                          <h4 className="font-bold text-white text-xl font-serif">{philosopher.name}</h4>
+                          <Badge className={`${
+                            isActive 
+                              ? `bg-${philosopher.color}-500/30 text-${philosopher.color}-200 border-${philosopher.color}-400/50` 
+                              : 'bg-slate-600/30 text-slate-300 border-slate-500/30'
+                          } text-sm px-3 py-1`}>
+                            {philosopher.subtitle}
+                          </Badge>
+                          {isActive && (
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs animate-pulse">
+                              SPEAKING
+                            </Badge>
+                          )}
                           {!isActive && (
-                            <p className="text-slate-300 text-xs italic">
+                            <p className="text-slate-400 text-sm italic mt-2">
                               {philosopherExpressions[philosopher.name] || "pondering existence"}
                             </p>
                           )}
