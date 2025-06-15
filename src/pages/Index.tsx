@@ -339,15 +339,15 @@ const Index = () => {
             <h1 className="text-4xl font-bold text-white mb-4 font-serif">Choose Your Philosophical Battle</h1>
             <p className="text-slate-300 text-lg mb-2">Select a debate to join as Socratic challenger</p>
             
-            {/* Updated Socrates Moderator Badge */}
-            <div className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-gradient-to-r from-slate-600/20 to-slate-500/20 border border-slate-500/30 rounded-full backdrop-blur-sm">
+            {/* Compact Socrates Moderator Badge */}
+            <div className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-gradient-to-r from-yellow-600/20 to-yellow-500/20 border border-yellow-500/30 rounded-full backdrop-blur-sm">
               <div className="relative">
-                <div className="w-8 h-8 bg-gradient-to-br from-slate-400 to-slate-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
                   <span className="text-slate-900 text-sm font-bold">🧠</span>
                 </div>
                 <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border border-slate-800 animate-pulse"></div>
               </div>
-              <span className="text-slate-300 font-semibold text-sm font-serif">Socrates Moderating</span>
+              <span className="text-yellow-400 font-semibold text-sm font-serif">Socrates Moderating</span>
             </div>
             
             {/* Category Tabs */}
