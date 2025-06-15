@@ -5,6 +5,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Mic, MicOff, Clock, Target, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 import { useVapi } from "@/hooks/useVapi";
 import { useToast } from "@/hooks/use-toast";
+import { ArenaBackground } from "@/components/ArenaBackground";
+import { SpeakingPlatform } from "@/components/SpeakingPlatform";
+import { CircularParticipants } from "@/components/CircularParticipants";
 
 interface DebateArenaProps {
   debateId: string;
@@ -223,9 +226,12 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+      {/* Arena Background with Atmosphere */}
+      <ArenaBackground />
+      
       {/* Header */}
-      <div className="px-6 py-4">
+      <div className="relative z-10 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Button variant="ghost" onClick={onBack} className="text-slate-300 hover:text-white">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -248,181 +254,75 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="px-6 pb-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Debate Title */}
+      {/* Main Arena Content */}
+      <div className="relative z-10 px-6 pb-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Arena Title */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2 font-serif">{debateConfig.title}</h1>
-            <p className="text-slate-300 text-lg">"{debateConfig.topic}"</p>
-          </div>
-
-          {/* Participants Overview with Improved Styling */}
-          <div className="mb-8">
-            <h3 className="text-lg font-bold text-white mb-6 text-center">Debate Participants</h3>
-            
-            {/* Enhanced Triangular Layout */}
-            <div className="flex flex-col items-center gap-8">
-              {/* Moderator at top center - Enhanced Design */}
-              <div className="w-full max-w-lg">
-                <div className={`bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm rounded-3xl p-6 border-2 transition-all duration-500 shadow-xl ${
-                  currentSpeaker === 'moderator' 
-                    ? 'border-amber-400/60 shadow-amber-500/20 ring-4 ring-amber-400/20 scale-105' 
-                    : 'border-slate-600/40 hover:border-slate-500/50'
-                }`}>
-                  <div className="flex flex-col items-center text-center">
-                    <div className="text-4xl mb-3">⚖️</div>
-                    <div className="space-y-2">
-                      <h4 className="font-bold text-white text-xl font-serif">{debateConfig.moderator.name}</h4>
-                      <Badge className={`${
-                        currentSpeaker === 'moderator' 
-                          ? 'bg-amber-500/30 text-amber-200 border-amber-400/50' 
-                          : 'bg-slate-600/30 text-slate-300 border-slate-500/30'
-                      } text-sm px-3 py-1`}>
-                        {debateConfig.moderator.subtitle}
-                      </Badge>
-                      {currentSpeaker === 'moderator' && (
-                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs animate-pulse">
-                          MODERATING
-                        </Badge>
-                      )}
-                      {currentSpeaker !== 'moderator' && (
-                        <p className="text-slate-400 text-sm italic mt-2">
-                          {philosopherExpressions[debateConfig.moderator.name] || "maintaining order"}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Philosophers below with Enhanced Design */}
-              <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
-                {debateConfig.philosophers.map((philosopher, index) => {
-                  const isActive = currentSpeaker === 'philosopher1' && index === 0 || currentSpeaker === 'philosopher2' && index === 1;
-                  const colorMap = {
-                    emerald: 'emerald-400',
-                    red: 'red-400', 
-                    blue: 'blue-400',
-                    purple: 'purple-400'
-                  };
-                  const borderColor = colorMap[philosopher.color as keyof typeof colorMap] || 'blue-400';
-                  
-                  return (
-                    <div key={philosopher.name} className={`bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm rounded-3xl p-6 border-2 transition-all duration-500 shadow-xl ${
-                      isActive 
-                        ? `border-${borderColor}/60 shadow-${philosopher.color}-500/20 ring-4 ring-${borderColor}/20 scale-105` 
-                        : 'border-slate-600/40 hover:border-slate-500/50'
-                    }`}>
-                      <div className="flex flex-col items-center text-center">
-                        <div className="text-4xl mb-3">
-                          {philosopher.color === 'emerald' && '💭'}
-                          {philosopher.color === 'red' && '🔥'}
-                          {philosopher.color === 'blue' && '🧠'}
-                          {philosopher.color === 'purple' && '⚡'}
-                        </div>
-                        <div className="space-y-2">
-                          <h4 className="font-bold text-white text-xl font-serif">{philosopher.name}</h4>
-                          <Badge className={`${
-                            isActive 
-                              ? `bg-${philosopher.color}-500/30 text-${philosopher.color}-200 border-${philosopher.color}-400/50` 
-                              : 'bg-slate-600/30 text-slate-300 border-slate-500/30'
-                          } text-sm px-3 py-1`}>
-                            {philosopher.subtitle}
-                          </Badge>
-                          {isActive && (
-                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs animate-pulse">
-                              SPEAKING
-                            </Badge>
-                          )}
-                          {!isActive && (
-                            <p className="text-slate-400 text-sm italic mt-2">
-                              {philosopherExpressions[philosopher.name] || "pondering existence"}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            <h1 className="text-4xl font-bold text-yellow-200 mb-4 font-serif tracking-wide">{debateConfig.title}</h1>
+            <p className="text-yellow-300/80 text-xl font-serif italic">"{debateConfig.topic}"</p>
+            <div className="mt-4 inline-block px-6 py-2 bg-gradient-to-r from-yellow-600/20 to-yellow-500/20 border border-yellow-500/30 rounded-full backdrop-blur-sm">
+              <span className="text-yellow-400 font-semibold text-sm">🏛️ PHILOSOPHICAL COLOSSEUM</span>
             </div>
           </div>
 
-          {/* Fixed Height Speech Container */}
-          <div className="mb-8">
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="text-3xl">
-                  {activeParticipant?.color === 'emerald' && '💭'}
-                  {activeParticipant?.color === 'red' && '🔥'}
-                  {activeParticipant?.color === 'blue' && '🧠'}
-                  {activeParticipant?.color === 'purple' && '⚡'}
-                  {activeParticipant?.color === 'amber' && '⚖️'}
-                  {currentSpeaker === 'moderator' && '⚖️'}
-                </div>
-                <h2 className="text-2xl font-bold text-white font-serif">
-                  {activeParticipant?.name.toUpperCase() || 'MODERATOR'}
-                </h2>
-              </div>
-              <Badge variant="secondary" className="bg-slate-700 text-slate-300">
-                {activeParticipant?.subtitle || 'The Moderator'}
-              </Badge>
-            </div>
+          {/* Circular Participants Layout */}
+          <div className="mb-12">
+            <CircularParticipants 
+              currentSpeaker={currentSpeaker}
+              debateConfig={debateConfig}
+              philosopherExpressions={philosopherExpressions}
+            />
+          </div>
+
+          {/* Central Speaking Platform */}
+          <div className="mb-12 flex justify-center">
+            <SpeakingPlatform 
+              currentSpeaker={currentSpeaker}
+              activeParticipant={activeParticipant}
+              currentStatement={currentStatement}
+            />
+          </div>
             
-            {/* Fixed Height Speech Container - 300px minimum height */}
-            <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 mb-8 h-80 flex items-center justify-center">
-              <div className="text-center max-w-3xl">
-                <p className="text-slate-200 text-xl leading-relaxed italic mb-6">
-                  "{currentStatement}"
-                </p>
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-slate-400">Speaking...</span>
-                </div>
+          {/* Voice Control Button */}
+          <div className="text-center mb-8">
+            <Button 
+              onClick={handleMuteToggle} 
+              size="lg" 
+              disabled={!isConnected}
+              className={`relative font-bold text-xl px-12 py-6 rounded-2xl backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-2xl ${
+                isUserMuted 
+                  ? 'bg-gradient-to-r from-red-600/30 via-red-500/30 to-orange-500/30 hover:from-red-600/40 hover:via-red-500/40 hover:to-orange-500/40 border-2 border-red-500/50 hover:border-red-400/60 text-red-200 hover:text-red-100 shadow-red-500/20' 
+                  : 'bg-gradient-to-r from-green-600/30 via-green-500/30 to-emerald-500/30 hover:from-green-600/40 hover:via-green-500/40 hover:to-emerald-500/40 border-2 border-green-500/50 hover:border-green-400/60 text-green-200 hover:text-green-100 shadow-green-500/20'
+              } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <div className={`absolute inset-0 rounded-2xl blur-md ${
+                isUserMuted ? 'bg-gradient-to-r from-red-600/20 to-orange-500/20' : 'bg-gradient-to-r from-green-600/20 to-emerald-500/20'
+              }`}></div>
+              <div className="relative flex items-center">
+                {isUserMuted ? (
+                  <>
+                    <MicOff className="h-6 w-6 mr-3 animate-pulse" />
+                    UNMUTE TO SPEAK
+                  </>
+                ) : (
+                  <>
+                    <Mic className="h-6 w-6 mr-3 animate-pulse" />
+                    YOU'RE LIVE - SPEAK NOW
+                  </>
+                )}
               </div>
-            </div>
-            
-            {/* Voice Control Button */}
-            <div className="text-center mb-8">
-              <Button 
-                onClick={handleMuteToggle} 
-                size="lg" 
-                disabled={!isConnected}
-                className={`relative font-bold text-xl px-12 py-6 rounded-2xl backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg ${
-                  isUserMuted 
-                    ? 'bg-gradient-to-r from-red-600/20 via-red-500/20 to-orange-500/20 hover:from-red-600/30 hover:via-red-500/30 hover:to-orange-500/30 border border-red-500/30 hover:border-red-400/40 text-red-300 hover:text-red-200 hover:shadow-red-500/10' 
-                    : 'bg-gradient-to-r from-green-600/20 via-green-500/20 to-emerald-500/20 hover:from-green-600/30 hover:via-green-500/30 hover:to-emerald-500/30 border border-green-500/30 hover:border-green-400/40 text-green-300 hover:text-green-200 hover:shadow-green-500/10'
-                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <div className={`absolute inset-0 rounded-2xl blur-sm ${
-                  isUserMuted ? 'bg-gradient-to-r from-red-600/10 to-orange-500/10' : 'bg-gradient-to-r from-green-600/10 to-emerald-500/10'
-                }`}></div>
-                <div className="relative flex items-center">
-                  {isUserMuted ? (
-                    <>
-                      <MicOff className="h-6 w-6 mr-3 animate-pulse" />
-                      UNMUTE TO SPEAK
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-6 w-6 mr-3 animate-pulse" />
-                      YOU'RE LIVE - SPEAK NOW
-                    </>
-                  )}
-                </div>
-              </Button>
-              <p className="text-slate-400 text-sm mt-3">
-                {error 
-                  ? 'Setup required: Configure your Vapi Public Key and Assistant ID' 
-                  : !isConnected 
-                    ? 'Connecting to voice debate...' 
-                    : isUserMuted 
-                      ? 'Click to join the debate with your voice' 
-                      : 'You can now speak directly to the philosophers'
-                }
-              </p>
-            </div>
+            </Button>
+            <p className="text-slate-400 text-sm mt-3">
+              {error 
+                ? 'Setup required: Configure your Vapi Public Key and Assistant ID' 
+                : !isConnected 
+                  ? 'Connecting to voice debate...' 
+                  : isUserMuted 
+                    ? 'Click to join the debate with your voice' 
+                    : 'You can now speak directly to the philosophers'
+              }
+            </p>
           </div>
 
           {/* Expandable Live Transcript */}
@@ -468,17 +368,17 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
           )}
 
           {/* Enhanced Socratic Challenge Toolkit */}
-          <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/30">
+          <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-6 border border-yellow-400/20 shadow-xl">
             <div className="text-center mb-6">
-              <h3 className="text-lg font-bold text-white mb-2">💭 Socratic Challenge Toolkit</h3>
-              <p className="text-slate-400 text-sm">Quick challenges to get you started</p>
+              <h3 className="text-lg font-bold text-yellow-200 mb-2">💭 Socratic Challenge Toolkit</h3>
+              <p className="text-yellow-300/70 text-sm">Quick challenges to get you started</p>
               <div className="flex items-center justify-center gap-2 mt-2">
                 <div className="flex gap-1">
                   {socraticChallenges.map((_, index) => (
                     <div 
                       key={index} 
                       className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentChallengeSet ? 'bg-blue-400' : 'bg-slate-600'
+                        index === currentChallengeSet ? 'bg-yellow-400' : 'bg-slate-600'
                       }`} 
                     />
                   ))}
@@ -493,7 +393,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                     key={index}
                     onClick={() => handleQuickChallenge(suggestion)}
                     disabled={!isConnected}
-                    className={`p-4 rounded-xl bg-slate-700/30 hover:bg-slate-600/40 text-slate-300 hover:text-white text-sm transition-all duration-200 hover:scale-105 border border-slate-600/20 hover:border-slate-500/40 backdrop-blur-sm hover:shadow-lg ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`p-4 rounded-xl bg-slate-700/40 hover:bg-slate-600/50 text-slate-300 hover:text-white text-sm transition-all duration-200 hover:scale-105 border border-yellow-400/20 hover:border-yellow-400/40 backdrop-blur-sm hover:shadow-lg ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     "{suggestion}"
                   </button>
@@ -505,7 +405,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                   onClick={prevChallengeSet} 
                   variant="ghost" 
                   size="sm" 
-                  className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl"
+                  className="text-yellow-300 hover:text-yellow-200 hover:bg-yellow-400/10 rounded-xl border border-yellow-400/20"
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Previous
@@ -514,7 +414,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                   onClick={nextChallengeSet} 
                   variant="ghost" 
                   size="sm" 
-                  className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl"
+                  className="text-yellow-300 hover:text-yellow-200 hover:bg-yellow-400/10 rounded-xl border border-yellow-400/20"
                 >
                   Next
                   <ChevronRight className="h-4 w-4 ml-1" />
