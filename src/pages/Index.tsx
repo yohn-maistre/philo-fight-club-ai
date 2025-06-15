@@ -3,6 +3,7 @@ import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
 import { BattleCard } from "@/components/BattleCard";
 import { DebateArena } from "@/components/DebateArena";
+import { MarqueeAnimation } from "@/components/ui/marquee-effect";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'battles' | 'arena'>('landing');
@@ -325,6 +326,17 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <HeroSection onEnterArena={handleEnterArena} />
+      
+      {/* Philosophy Fight Club Marquee */}
+      <div className="py-8 border-t border-b border-slate-700/50">
+        <MarqueeAnimation
+          direction="left"
+          baseVelocity={-2}
+          className="bg-gradient-to-r from-yellow-600 to-yellow-500 bg-clip-text text-transparent py-4 text-2xl md:text-4xl font-serif tracking-wide"
+        >
+          The first rule of Philosophy Fight Club is: you MUST talk about Philosophy Fight Club
+        </MarqueeAnimation>
+      </div>
     </div>
   );
 };
