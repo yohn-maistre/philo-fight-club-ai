@@ -2,13 +2,10 @@
 import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
 import { BattleCard } from "@/components/BattleCard";
-import { ModernDebateArena } from "@/components/ModernDebateArena";
-import { PreBattleBriefing } from "@/components/PreBattleBriefing";
-import { PostBattleResults } from "@/components/PostBattleResults";
-import { ChallengeLibrary } from "@/components/ChallengeLibrary";
+import { DebateArena } from "@/components/DebateArena";
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'landing' | 'battles' | 'briefing' | 'arena' | 'results' | 'library'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'battles' | 'arena'>('landing');
   const [selectedBattle, setSelectedBattle] = useState<string | null>(null);
 
   const availableBattles = [
@@ -83,15 +80,7 @@ const Index = () => {
 
   const handleJoinBattle = (battleId: string) => {
     setSelectedBattle(battleId);
-    setCurrentView('briefing');
-  };
-
-  const handleStartBattle = () => {
     setCurrentView('arena');
-  };
-
-  const handleBattleComplete = () => {
-    setCurrentView('results');
   };
 
   const handleBackToArena = () => {
@@ -103,42 +92,8 @@ const Index = () => {
     setCurrentView('landing');
   };
 
-  const handleOpenLibrary = () => {
-    setCurrentView('library');
-  };
-
-  // Route to different views
   if (currentView === 'arena' && selectedBattle) {
-    return <ModernDebateArena debateId={selectedBattle} onBack={handleBackToArena} />;
-  }
-
-  if (currentView === 'briefing' && selectedBattle) {
-    return (
-      <PreBattleBriefing 
-        battleId={selectedBattle} 
-        onStart={handleStartBattle}
-        onBack={handleBackToArena} 
-      />
-    );
-  }
-
-  if (currentView === 'results') {
-    return (
-      <PostBattleResults
-        onChallengeAgain={handleStartBattle}
-        onNewBattle={handleBackToArena}
-        onBackToMenu={handleBackToLanding}
-      />
-    );
-  }
-
-  if (currentView === 'library') {
-    return (
-      <ChallengeLibrary
-        onBack={handleBackToArena}
-        onPractice={(challenge) => console.log('Practice:', challenge)}
-      />
-    );
+    return <DebateArena debateId={selectedBattle} onBack={handleBackToArena} />;
   }
 
   if (currentView === 'battles') {
@@ -153,28 +108,16 @@ const Index = () => {
               ← Back to Home
             </button>
             <h1 className="text-4xl font-bold text-white mb-4 font-serif">Choose Your Battle</h1>
-            <p className="text-slate-300 text-lg mb-6">Select a philosophical debate to join as Socratic challenger</p>
-            
-            <button
-              onClick={handleOpenLibrary}
-              className="text-yellow-400 hover:text-yellow-300 transition-colors mb-8 underline"
-            >
-              📚 Browse Challenge Library First
-            </button>
+            <p className="text-slate-300 text-lg">Select a philosophical debate to join as Socratic challenger</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {availableBattles.map((battle, index) => (
-              <div 
+            {availableBattles.map((battle) => (
+              <BattleCard
                 key={battle.id}
-                className="animate-slide-up-fade"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <BattleCard
-                  {...battle}
-                  onJoinBattle={handleJoinBattle}
-                />
-              </div>
+                {...battle}
+                onJoinBattle={handleJoinBattle}
+              />
             ))}
           </div>
         </div>
