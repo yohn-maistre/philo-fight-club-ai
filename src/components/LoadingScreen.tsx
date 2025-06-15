@@ -6,16 +6,20 @@ import { useState, useEffect } from "react";
 interface LoadingScreenProps {
   message?: string;
   isError?: boolean;
+  onRetry?: () => void;
 }
 
 export const LoadingScreen = ({ 
   message = "Preparing the philosophical arena...", 
-  isError = false 
+  isError = false,
+  onRetry
 }: LoadingScreenProps) => {
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  const [hasShownDebugInfo, setHasShownDebugInfo] = useState(false);
 
   useEffect(() => {
-    if (isError) {
+    if (isError && !hasShownDebugInfo) {
+      setHasShownDebugInfo(true);
       // Collect debugging information
       const info: string[] = [];
       
@@ -50,7 +54,22 @@ export const LoadingScreen = ({
         info.push("✅ Secure connection");
       }
       
+      // Check network connectivity
+      if (!navigator.onLine) {
+        info.push("❌ No internet connection detected");
+      } else {
+        info.push("✅ Internet connection available");
+      }
+      
       setDebugInfo(info);
+    }
+  }, [isError, hasShownDebugInfo]);
+
+  // Reset debug info when error state changes
+  useEffect(() => {
+    if (!isError) {
+      setHasShownDebugInfo(false);
+      setDebugInfo([]);
     }
   }, [isError]);
 
@@ -93,14 +112,16 @@ export const LoadingScreen = ({
             </div>
             
             <motion.div
-              initial={{ opacity: 0.5 }}
-              animate={{ opacity: [0.5, 1, 0.5] }}
+              className="h-1 w-60 bg-gradient-to-r from-yellow-400/30 via-yellow-600 to-yellow-400/30 rounded-full mx-auto"
+              animate={{ 
+                opacity: [0.3, 1, 0.3],
+                scale: [0.98, 1.02, 0.98]
+              }}
               transition={{ 
                 duration: 2, 
                 repeat: Infinity, 
                 ease: "easeInOut" 
               }}
-              className="h-1 w-60 bg-gradient-to-r from-yellow-400/30 via-yellow-600 to-yellow-400/30 rounded-full mx-auto"
             />
           </motion.div>
         )}
@@ -117,9 +138,18 @@ export const LoadingScreen = ({
               <h3 className="text-red-300 font-medium mb-3 text-lg">Connection Error</h3>
               <p className="text-red-400 text-sm mb-4">{message}</p>
               
+              {onRetry && (
+                <button
+                  onClick={onRetry}
+                  className="mb-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-300 text-sm transition-colors"
+                >
+                  Try Again
+                </button>
+              )}
+              
               {debugInfo.length > 0 && (
                 <div className="mt-4 p-4 bg-slate-800/50 rounded-lg border border-slate-600/30">
-                  <h4 className="text-slate-300 font-medium mb-3 text-sm">Debug Information:</h4>
+                  <h4 className="text-slate-300 font-medium mb-3 text-sm">System Diagnostics:</h4>
                   <div className="space-y-2 text-xs text-left">
                     {debugInfo.map((info, index) => (
                       <div key={index} className="flex items-start gap-2">
@@ -132,12 +162,13 @@ export const LoadingScreen = ({
               )}
               
               <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                <h4 className="text-blue-300 font-medium mb-2 text-sm">Setup Instructions:</h4>
+                <h4 className="text-blue-300 font-medium mb-2 text-sm">Troubleshooting Steps:</h4>
                 <ul className="text-xs text-left text-blue-400 space-y-1">
-                  <li>1. Add your Vapi public key to Vercel environment variables</li>
-                  <li>2. Ensure HTTPS is enabled (required for microphone access)</li>
+                  <li>1. Check your internet connection</li>
+                  <li>2. Ensure VITE_VAPI_PUBLIC_KEY is set in environment variables</li>
                   <li>3. Grant microphone permissions when prompted</li>
-                  <li>4. Check browser console for additional error details</li>
+                  <li>4. Try refreshing the page</li>
+                  <li>5. Check browser console for additional error details</li>
                 </ul>
               </div>
             </div>

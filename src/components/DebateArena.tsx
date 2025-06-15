@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -36,7 +36,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   // Get squad configuration
   const squadConfig = getSquadConfig(debateId);
 
-  // Vapi integration with improved message handling and speaker tracking
+  // Vapi integration with improved error handling
   const { 
     isConnected, 
     isLoading: vapiLoading, 
@@ -208,13 +208,13 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Initialize Vapi connection with squad config - only once
+  // Initialize Vapi connection with squad config - only once with better error handling
   useEffect(() => {
-    if (squadConfig && !hasTriedConnection) {
+    if (squadConfig && !hasTriedConnection && !isConnected && !vapiLoading) {
       console.log('Connecting to Vapi with squad config:', squadConfig);
       connect({ squadConfig });
     }
-  }, [squadConfig, hasTriedConnection, connect]);
+  }, [squadConfig, hasTriedConnection, isConnected, vapiLoading, connect]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -228,11 +228,29 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcript]);
 
-  // Show loading screen until Vapi connection is established or error occurs
+  // Retry connection function
+  const retryConnection = useCallback(() => {
+    if (squadConfig) {
+      console.log('Retrying Vapi connection');
+      connect({ squadConfig });
+    }
+  }, [squadConfig, connect]);
+
+  // Show loading screen with better error handling
   if (!hasTriedConnection || (vapiLoading && !isConnected && !error)) {
     return <LoadingScreen 
       message={error ? error : "Connecting to the philosophical arena..."} 
       isError={!!error}
+      onRetry={error ? retryConnection : undefined}
+    />;
+  }
+
+  // Show error screen if connection failed and not loading
+  if (error && !vapiLoading && !isConnected) {
+    return <LoadingScreen 
+      message={error} 
+      isError={true}
+      onRetry={retryConnection}
     />;
   }
 
