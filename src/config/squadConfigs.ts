@@ -47,7 +47,7 @@ export const getSquadConfig = (debateId: string): SquadConfig | null => {
           assistant: {
             name: "Aristotle",
             model: {
-              model: "gpt-4o",
+              model: "llama-3.3-70b-versatile",
               provider: "groq",
               messages: [
                 {
@@ -83,8 +83,8 @@ You are moderating a debate between Socrates and Nietzsche on the nature of mora
               temperature: 0.7
             },
             voice: {
-              voiceId: "pNczCjzI2devNBz1zQrb",
-              provider: "elevenlabs",
+              voiceId: "IokmXfIsrOE3umjiwHWz",
+              provider: "11labs",
               fillerInjectionEnabled: false
             },
             transcriber: {
@@ -110,7 +110,7 @@ You are moderating a debate between Socrates and Nietzsche on the nature of mora
           assistant: {
             name: "Socrates",
             model: {
-              model: "gpt-4o",
+              model: "llama-3.3-70b-versatile",
               provider: "groq",
               messages: [
                 {
@@ -147,8 +147,8 @@ You are in a philosophical debate with Nietzsche about morality. Use your method
               temperature: 0.7
             },
             voice: {
-              voiceId: "TX3LPaxmHKxFdv7VOQHJ",
-              provider: "elevenlabs",
+              voiceId: "E2odxVHlmLJ5GY1yuWNl",
+              provider: "11labs",
               fillerInjectionEnabled: false
             },
             transcriber: {
@@ -174,8 +174,8 @@ You are in a philosophical debate with Nietzsche about morality. Use your method
           assistant: {
             name: "Nietzsche",
             model: {
-              model: "gpt-4o",
-              provider: "openai",
+              model: "llama-3.3-70b-versatile",
+              provider: "groq",
               messages: [
                 {
                   role: "system",
@@ -210,8 +210,8 @@ You are in a philosophical debate about morality. You believe morality is subjec
               temperature: 0.8
             },
             voice: {
-              voiceId: "cjVigY5qzO86Huf0OWal",
-              provider: "elevenlabs",
+              voiceId: "A9evEp8yGjv4c3WslKuY",
+              provider: "11labs",
               fillerInjectionEnabled: false
             },
             transcriber: {
@@ -235,8 +235,8 @@ You are in a philosophical debate about morality. You believe morality is subjec
           assistant: {
             name: "Kant",
             model: {
-              model: "gpt-4o",
-              provider: "openai",
+              model: "llama-3.3-70b-versatile",
+              provider: "groq",
               messages: [
                 {
                   role: "system",
@@ -261,8 +261,8 @@ You are moderating between Descartes and Spinoza on the question of human freedo
               temperature: 0.6
             },
             voice: {
-              voiceId: "pNczCjzI2devNBz1zQrb",
-              provider: "elevenlabs",
+              voiceId: "IokmXfIsrOE3umjiwHWz",
+              provider: "11labs",
               fillerInjectionEnabled: false
             },
             transcriber: {
@@ -288,8 +288,8 @@ You are moderating between Descartes and Spinoza on the question of human freedo
           assistant: {
             name: "Descartes",
             model: {
-              model: "gpt-4o",
-              provider: "openai",
+              model: "llama-3.3-70b-versatile",
+              provider: "groq",
               messages: [
                 {
                   role: "system",
@@ -310,8 +310,8 @@ Debate with the human about free will. Present your dualist view that the mind i
               temperature: 0.7
             },
             voice: {
-              voiceId: "TX3LPaxmHKxFdv7VOQHJ",
-              provider: "elevenlabs",
+              voiceId: "E2odxVHlmLJ5GY1yuWNl",
+              provider: "11labs",
               fillerInjectionEnabled: false
             },
             transcriber: {
@@ -337,8 +337,8 @@ Debate with the human about free will. Present your dualist view that the mind i
           assistant: {
             name: "Spinoza",
             model: {
-              model: "gpt-4o",
-              provider: "openai",
+              model: "llama-3.3-70b-versatile",
+              provider: "groq",
               messages: [
                 {
                   role: "system",
@@ -359,8 +359,8 @@ Present the deterministic view that all things, including human actions, are det
               temperature: 0.7
             },
             voice: {
-              voiceId: "cjVigY5qzO86Huf0OWal",
-              provider: "elevenlabs",
+              voiceId: "dtWhnuTdWbT27plTkWhW",
+              provider: "11labs",
               fillerInjectionEnabled: false
             },
             transcriber: {
@@ -384,8 +384,8 @@ Present the deterministic view that all things, including human actions, are det
           assistant: {
             name: "Aristotle",
             model: {
-              model: "gpt-4o",
-              provider: "openai",
+              model: "llama-3.3-70b-versatile",
+              provider: "groq",
               messages: [
                 {
                   role: "system",
@@ -405,8 +405,8 @@ You are moderating between Kant and Hume on rationalism vs empiricism. After int
               temperature: 0.6
             },
             voice: {
-              voiceId: "pNczCjzI2devNBz1zQrb",
-              provider: "elevenlabs",
+              voiceId: "e2odxvhmlmj5gy1yuwnl",
+              provider: "11labs",
               fillerInjectionEnabled: false
             },
             transcriber: {
@@ -432,8 +432,8 @@ You are moderating between Kant and Hume on rationalism vs empiricism. After int
           assistant: {
             name: "Kant",
             model: {
-              model: "gpt-4o",
-              provider: "openai",
+              model: "llama-3.3-70b-versatile",
+              provider: "groq",
               messages: [
                 {
                   role: "system",
@@ -454,8 +454,8 @@ Present your view that knowledge requires both experience and reason working tog
               temperature: 0.7
             },
             voice: {
-              voiceId: "TX3LPaxmHKxFdv7VOQHJ",
-              provider: "elevenlabs",
+              voiceId: "e2odxvhmlmj5gy1yuwnl",
+              provider: "11labs",
               fillerInjectionEnabled: false
             },
             transcriber: {
@@ -481,8 +481,8 @@ Present your view that knowledge requires both experience and reason working tog
           assistant: {
             name: "Hume",
             model: {
-              model: "gpt-4o",
-              provider: "openai",
+              model: "llama-3.3-70b-versatile",
+              provider: "groq",
               messages: [
                 {
                   role: "system",
@@ -503,8 +503,8 @@ Challenge rational certainties and argue that knowledge comes from experience, b
               temperature: 0.7
             },
             voice: {
-              voiceId: "cjVigY5qzO86Huf0OWal",
-              provider: "elevenlabs",
+              voiceId: "dgkKQcJqyy5AP0dqleUU",
+              provider: "11labs",
               fillerInjectionEnabled: false
             },
             transcriber: {
