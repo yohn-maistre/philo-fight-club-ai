@@ -294,12 +294,12 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                   {isUserMuted ? (
                     <>
                       <MicOff className="h-6 w-6 mr-3 animate-pulse" />
-                      UNMUTE TO CHALLENGE
+                      UNMUTE TO SPEAK
                     </>
                   ) : (
                     <>
                       <Mic className="h-6 w-6 mr-3 animate-pulse" />
-                      YOU'RE LIVE - CHALLENGE NOW
+                      YOU'RE LIVE - SPEAK NOW
                     </>
                   )}
                 </div>
@@ -309,22 +309,39 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                   ? 'Connecting to voice debate...' 
                   : isUserMuted 
                     ? 'Click to join the debate with your voice' 
-                    : 'You can now speak and challenge the philosophers'
+                    : 'You can now speak directly to the philosophers'
                 }
               </p>
             </div>
           </div>
 
-          {/* Live Transcript */}
+          {/* Live Transcript - Matching Philosopher Style */}
           {transcript.length > 0 && (
             <div className="mb-8">
-              <h3 className="text-lg font-bold text-white mb-4 text-center">Live Transcript</h3>
-              <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/30 max-h-60 overflow-y-auto">
-                {transcript.map((message, index) => (
-                  <p key={index} className="text-slate-300 mb-2 text-sm">
-                    {message}
-                  </p>
-                ))}
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-white mb-2 font-serif">LIVE DEBATE TRANSCRIPT</h3>
+                <Badge variant="secondary" className="bg-slate-700 text-slate-300">
+                  Real-time conversation
+                </Badge>
+              </div>
+              
+              <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/30 max-h-80 overflow-y-auto">
+                <div className="space-y-4">
+                  {transcript.map((message, index) => (
+                    <div key={index} className="border-l-2 border-slate-600/30 pl-4">
+                      <p className="text-slate-200 leading-relaxed">
+                        {message}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                
+                {transcript.length > 0 && (
+                  <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-slate-700/30">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-slate-400 text-sm">Live conversation in progress...</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
