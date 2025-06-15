@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Mic, Clock, Target, Zap, ChevronLeft, ChevronRight } from "lucide-react";
-import { InterruptInterface } from "@/components/InterruptInterface";
-import { PhilosopherResponse } from "@/components/PhilosopherResponse";
+import { ArrowLeft, Mic, MicOff, Clock, Target, ChevronLeft, ChevronRight } from "lucide-react";
+import { useVapi } from "@/hooks/useVapi";
+
 interface DebateArenaProps {
   debateId: string;
   onBack: () => void;
@@ -12,22 +12,32 @@ interface DebateArenaProps {
 // Move expressions outside component to prevent recreation on every render
 const absurdExpressions = ["adjusting his toga dramatically", "counting invisible sheep", "practicing air guitar solos", "doing tiny desk push-ups", "organizing his beard hair by length", "sketching doodles of cats", "humming show tunes quietly", "tapping morse code with his fingers", "doing interpretive dance moves", "practicing magic tricks", "folding origami cranes", "shadow boxing with wisdom", "playing invisible chess", "conducting an invisible orchestra", "doing breathing exercises", "stretching like a cat", "swinging his feet while listening", "sitting grumpily with arms crossed", "twirling his mustache thoughtfully", "cleaning his fingernails", "stacking imaginary blocks", "doing neck rolls", "practicing facial expressions in a mirror", "knitting an invisible scarf"];
 
-// Extended Socratic challenge suggestions
-const socraticChallenges = [["But what do you mean by that?", "Can you give a concrete example?", "What if someone disagreed?", "How do you know that's true?"], ["What assumptions are you making?", "Could there be another explanation?", "What evidence supports this?", "How would you respond to critics?"], ["What are the implications of that?", "Is this always the case?", "What would happen if everyone believed this?", "How do you define that term?"], ["What's the strongest argument against your view?", "Where does this logic lead us?", "Can you think of any exceptions?", "Why should we accept this premise?"], ["What would your opponents say?", "How did you reach that conclusion?", "What if the opposite were true?", "What's your best evidence for this?"]];
-export const DebateArena = ({
-  debateId,
-  onBack
-}: DebateArenaProps) => {
+export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const [currentSpeaker, setCurrentSpeaker] = useState<'philosopher1' | 'philosopher2' | 'user'>('philosopher1');
-  const [isInterrupted, setIsInterrupted] = useState(false);
   const [challengeCount, setChallengeCount] = useState(0);
   const [debateTime, setDebateTime] = useState(0);
   const [currentStatement, setCurrentStatement] = useState("");
-  const [showResponse, setShowResponse] = useState(false);
-  const [philosopherExpressions, setPhilosopherExpressions] = useState<{
-    [key: string]: string;
-  }>({});
+  const [philosopherExpressions, setPhilosopherExpressions] = useState<{[key: string]: string}>({});
   const [currentChallengeSet, setCurrentChallengeSet] = useState(0);
+  const [isUserMuted, setIsUserMuted] = useState(true);
+  const [transcript, setTranscript] = useState<string[]>([]);
+
+  // Vapi integration
+  const { isConnected, isLoading, connect, disconnect, sendMessage } = useVapi({
+    onConnect: () => {
+      console.log('Connected to Vapi');
+      setTranscript(prev => [...prev, 'System: Connected to voice debate']);
+    },
+    onDisconnect: () => {
+      console.log('Disconnected from Vapi');
+    },
+    onMessage: (message) => {
+      console.log('Received message from Vapi:', message);
+      if (message.transcript) {
+        setTranscript(prev => [...prev, `${message.transcript!.speaker}: ${message.transcript!.transcript}`]);
+      }
+    }
+  });
 
   // Get debate config based on ID
   const getDebateConfig = (id: string) => {
@@ -69,14 +79,13 @@ export const DebateArena = ({
     };
     return configs[id as keyof typeof configs] || configs["morality-debate"];
   };
+
   const debateConfig = getDebateConfig(debateId);
 
   // Update expressions every 3-5 seconds with proper cleanup
   useEffect(() => {
     const updateExpressions = () => {
-      const newExpressions: {
-        [key: string]: string;
-      } = {};
+      const newExpressions: {[key: string]: string} = {};
       debateConfig.philosophers.forEach(philosopher => {
         const randomExpression = absurdExpressions[Math.floor(Math.random() * absurdExpressions.length)];
         newExpressions[philosopher.name] = randomExpression;
@@ -94,7 +103,7 @@ export const DebateArena = ({
 
     // Cleanup function
     return () => clearInterval(interval);
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -102,53 +111,66 @@ export const DebateArena = ({
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
   useEffect(() => {
-    if (!isInterrupted && !showResponse) {
-      const speaker = currentSpeaker;
-      const statements = debateConfig.statements[speaker];
-      if (statements) {
-        setCurrentStatement(statements[Math.floor(Math.random() * statements.length)]);
-      }
+    const speaker = currentSpeaker;
+    const statements = debateConfig.statements[speaker];
+    if (statements) {
+      setCurrentStatement(statements[Math.floor(Math.random() * statements.length)]);
     }
-  }, [currentSpeaker, isInterrupted, showResponse, debateConfig]);
+  }, [currentSpeaker, debateConfig]);
+
+  // Initialize Vapi connection when component mounts
+  useEffect(() => {
+    // TODO: Replace with actual assistant ID from your Vapi dashboard
+    const assistantId = "your-assistant-id"; 
+    connect(assistantId);
+
+    return () => {
+      disconnect();
+    };
+  }, [connect, disconnect]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-  const handleInterrupt = () => {
-    setIsInterrupted(true);
-    setCurrentSpeaker('user');
+
+  const handleMuteToggle = () => {
+    setIsUserMuted(!isUserMuted);
+    if (!isUserMuted) {
+      setChallengeCount(prev => prev + 1);
+    }
   };
-  const handleChallengeComplete = (challenge: string) => {
-    setChallengeCount(prev => prev + 1);
-    setIsInterrupted(false);
-    setShowResponse(true);
-  };
-  const handleContinueDebate = () => {
-    setShowResponse(false);
-    setCurrentSpeaker(currentSpeaker === 'philosopher1' ? 'philosopher2' : 'philosopher1');
-  };
+
   const handleQuickChallenge = (challenge: string) => {
     setChallengeCount(prev => prev + 1);
-    setShowResponse(true);
+    setTranscript(prev => [...prev, `You: ${challenge}`]);
+    sendMessage(challenge);
   };
+
   const nextChallengeSet = () => {
     setCurrentChallengeSet(prev => (prev + 1) % socraticChallenges.length);
   };
+
   const prevChallengeSet = () => {
     setCurrentChallengeSet(prev => (prev - 1 + socraticChallenges.length) % socraticChallenges.length);
   };
-  if (isInterrupted) {
-    const activePhilosopher = currentSpeaker === 'philosopher1' ? debateConfig.philosophers[0] : debateConfig.philosophers[1];
-    return <InterruptInterface philosopher={activePhilosopher.name} onChallengeComplete={handleChallengeComplete} onBack={() => setIsInterrupted(false)} />;
-  }
-  if (showResponse) {
-    const activePhilosopher = currentSpeaker === 'philosopher1' ? debateConfig.philosophers[0] : debateConfig.philosophers[1];
-    return <PhilosopherResponse philosopher={activePhilosopher.name} onContinue={handleContinueDebate} onNewChallenge={() => setIsInterrupted(true)} />;
-  }
+
   const activePhilosopher = currentSpeaker === 'philosopher1' ? debateConfig.philosophers[0] : debateConfig.philosophers[1];
-  return <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+
+  // Extended Socratic challenge suggestions
+  const socraticChallenges = [
+    ["But what do you mean by that?", "Can you give a concrete example?", "What if someone disagreed?", "How do you know that's true?"],
+    ["What assumptions are you making?", "Could there be another explanation?", "What evidence supports this?", "How would you respond to critics?"],
+    ["What are the implications of that?", "Is this always the case?", "What would happen if everyone believed this?", "How do you define that term?"],
+    ["What's the strongest argument against your view?", "Where does this logic lead us?", "Can you think of any exceptions?", "Why should we accept this premise?"],
+    ["What would your opponents say?", "How did you reach that conclusion?", "What if the opposite were true?", "What's your best evidence for this?"]
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
       <div className="px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -166,8 +188,8 @@ export const DebateArena = ({
               <Target className="h-4 w-4" />
               <span>{challengeCount} challenges</span>
             </div>
-            <Badge className="bg-red-500 hover:bg-red-600 text-white animate-pulse">
-              🔴 LIVE
+            <Badge className={`${isConnected ? 'bg-green-500 hover:bg-green-600' : isLoading ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-red-500 hover:bg-red-600'} text-white animate-pulse`}>
+              {isConnected ? '🟢 CONNECTED' : isLoading ? '🟡 CONNECTING' : '🔴 DISCONNECTED'}
             </Badge>
           </div>
         </div>
@@ -187,8 +209,9 @@ export const DebateArena = ({
             <h3 className="text-lg font-bold text-white mb-4 text-center">Debate Participants</h3>
             <div className="grid md:grid-cols-2 gap-4">
               {debateConfig.philosophers.map((philosopher, index) => {
-              const isActive = currentSpeaker === 'philosopher1' && index === 0 || currentSpeaker === 'philosopher2' && index === 1;
-              return <div key={philosopher.name} className={`bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border transition-all duration-300 ${isActive ? 'border-blue-500/50 shadow-lg shadow-blue-500/10' : 'border-slate-700/30'}`}>
+                const isActive = currentSpeaker === 'philosopher1' && index === 0 || currentSpeaker === 'philosopher2' && index === 1;
+                return (
+                  <div key={philosopher.name} className={`bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border transition-all duration-300 ${isActive ? 'border-blue-500/50 shadow-lg shadow-blue-500/10' : 'border-slate-700/30'}`}>
                     <div className="flex items-center gap-3">
                       <div className="text-2xl">
                         {philosopher.color === 'emerald' && '💭'}
@@ -199,19 +222,24 @@ export const DebateArena = ({
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h4 className="font-bold text-white">{philosopher.name}</h4>
-                          {isActive && <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
+                          {isActive && (
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
                               SPEAKING
-                            </Badge>}
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-slate-400 text-sm mb-2">{philosopher.subtitle}</p>
                         {/* Only show expressions for non-active philosophers */}
-                        {!isActive && <p className="text-slate-300 text-xs italic">
+                        {!isActive && (
+                          <p className="text-slate-300 text-xs italic">
                             {philosopherExpressions[philosopher.name] || "pondering existence"}
-                          </p>}
+                          </p>
+                        )}
                       </div>
                     </div>
-                  </div>;
-            })}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -247,18 +275,59 @@ export const DebateArena = ({
               </div>
             </div>
             
-            {/* Modernized Interrupt Button */}
-            <div className="text-center">
-              <Button onClick={handleInterrupt} size="lg" className="relative bg-gradient-to-r from-red-600/20 via-red-500/20 to-orange-500/20 hover:from-red-600/30 hover:via-red-500/30 hover:to-orange-500/30 border border-red-500/30 hover:border-red-400/40 text-red-300 hover:text-red-200 font-bold text-xl px-12 py-6 rounded-2xl backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-red-500/10">
-                <div className="absolute inset-0 bg-gradient-to-r from-red-800/10 to-orange-500/10 rounded-2xl blur-sm"></div>
+            {/* Voice Control Button */}
+            <div className="text-center mb-8">
+              <Button 
+                onClick={handleMuteToggle} 
+                size="lg" 
+                disabled={!isConnected}
+                className={`relative font-bold text-xl px-12 py-6 rounded-2xl backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg ${
+                  isUserMuted 
+                    ? 'bg-gradient-to-r from-red-600/20 via-red-500/20 to-orange-500/20 hover:from-red-600/30 hover:via-red-500/30 hover:to-orange-500/30 border border-red-500/30 hover:border-red-400/40 text-red-300 hover:text-red-200 hover:shadow-red-500/10' 
+                    : 'bg-gradient-to-r from-green-600/20 via-green-500/20 to-emerald-500/20 hover:from-green-600/30 hover:via-green-500/30 hover:to-emerald-500/30 border border-green-500/30 hover:border-green-400/40 text-green-300 hover:text-green-200 hover:shadow-green-500/10'
+                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className={`absolute inset-0 rounded-2xl blur-sm ${
+                  isUserMuted ? 'bg-gradient-to-r from-red-600/10 to-orange-500/10' : 'bg-gradient-to-r from-green-600/10 to-emerald-500/10'
+                }`}></div>
                 <div className="relative flex items-center">
-                  <Zap className="h-6 w-6 mr-3 animate-pulse" />
-                  INTERRUPT & CHALLENGE
+                  {isUserMuted ? (
+                    <>
+                      <MicOff className="h-6 w-6 mr-3 animate-pulse" />
+                      UNMUTE TO CHALLENGE
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-6 w-6 mr-3 animate-pulse" />
+                      YOU'RE LIVE - CHALLENGE NOW
+                    </>
+                  )}
                 </div>
               </Button>
-              <p className="text-slate-400 text-sm mt-3">Challenge their logic with your Socratic question</p>
+              <p className="text-slate-400 text-sm mt-3">
+                {!isConnected 
+                  ? 'Connecting to voice debate...' 
+                  : isUserMuted 
+                    ? 'Click to join the debate with your voice' 
+                    : 'You can now speak and challenge the philosophers'
+                }
+              </p>
             </div>
           </div>
+
+          {/* Live Transcript */}
+          {transcript.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-lg font-bold text-white mb-4 text-center">Live Transcript</h3>
+              <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/30 max-h-60 overflow-y-auto">
+                {transcript.map((message, index) => (
+                  <p key={index} className="text-slate-300 mb-2 text-sm">
+                    {message}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Enhanced Socratic Challenge Toolkit with Slideshow */}
           <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/30">
@@ -267,24 +336,48 @@ export const DebateArena = ({
               <p className="text-slate-400 text-sm">Quick challenges to get you started</p>
               <div className="flex items-center justify-center gap-2 mt-2">
                 <div className="flex gap-1">
-                  {socraticChallenges.map((_, index) => <div key={index} className={`w-2 h-2 rounded-full transition-colors ${index === currentChallengeSet ? 'bg-blue-400' : 'bg-slate-600'}`} />)}
+                  {socraticChallenges.map((_, index) => (
+                    <div 
+                      key={index} 
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === currentChallengeSet ? 'bg-blue-400' : 'bg-slate-600'
+                      }`} 
+                    />
+                  ))}
                 </div>
               </div>
             </div>
             
             <div className="relative">
               <div className="grid md:grid-cols-2 gap-3 mb-4">
-                {socraticChallenges[currentChallengeSet].map((suggestion, index) => <button key={index} onClick={() => handleQuickChallenge(suggestion)} className="p-4 rounded-xl bg-slate-700/30 hover:bg-slate-600/40 text-slate-300 hover:text-white text-sm transition-all duration-200 hover:scale-105 border border-slate-600/20 hover:border-slate-500/40 backdrop-blur-sm hover:shadow-lg">
+                {socraticChallenges[currentChallengeSet].map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleQuickChallenge(suggestion)}
+                    disabled={!isConnected}
+                    className={`p-4 rounded-xl bg-slate-700/30 hover:bg-slate-600/40 text-slate-300 hover:text-white text-sm transition-all duration-200 hover:scale-105 border border-slate-600/20 hover:border-slate-500/40 backdrop-blur-sm hover:shadow-lg ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
                     "{suggestion}"
-                  </button>)}
+                  </button>
+                ))}
               </div>
               
               <div className="flex justify-center gap-3">
-                <Button onClick={prevChallengeSet} variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl">
+                <Button 
+                  onClick={prevChallengeSet} 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl"
+                >
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Previous
                 </Button>
-                <Button onClick={nextChallengeSet} variant="ghost" size="sm" className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl">
+                <Button 
+                  onClick={nextChallengeSet} 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl"
+                >
                   Next
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
@@ -293,5 +386,6 @@ export const DebateArena = ({
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
