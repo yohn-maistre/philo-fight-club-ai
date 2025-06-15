@@ -76,6 +76,7 @@ export const useVapi = (options: UseVapiOptions) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [volumeLevel, setVolumeLevel] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [hasTriedConnection, setHasTriedConnection] = useState(false);
 
   const vapiPublicKey = import.meta.env.VITE_VAPI_PUBLIC_KEY;
 
@@ -85,17 +86,21 @@ export const useVapi = (options: UseVapiOptions) => {
     squadConfig?: VapiSquadConfig 
   }) => {
     const { assistantId, squadId, squadConfig } = callConfig;
-    if (isConnected || isLoading) return;
+    
+    // Prevent multiple connection attempts
+    if (isConnected || isLoading || hasTriedConnection) return;
 
     if (!vapiPublicKey || vapiPublicKey === "YOUR_VAPI_PUBLIC_KEY" || vapiPublicKey === undefined) {
-      const errorMsg = "Vapi Public Key not configured. Please add your key to .env and ensure it's named VITE_VAPI_PUBLIC_KEY";
+      const errorMsg = "Vapi Public Key not configured. Please add your key to Vercel environment variables as VITE_VAPI_PUBLIC_KEY";
       setError(errorMsg);
+      setHasTriedConnection(true);
       options.onError?.(new Error(errorMsg));
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setHasTriedConnection(true);
 
     try {
       const vapi = new Vapi(vapiPublicKey!);
@@ -159,18 +164,21 @@ export const useVapi = (options: UseVapiOptions) => {
         options.onError?.(error);
       });
 
-      // Start the call with proper Vapi SDK format
+      // Start the call with the correct Vapi SDK format
       if (squadConfig) {
-        // Use the squad configuration directly as expected by Vapi SDK
+        // For squads, pass the squad config directly to Vapi
+        console.log('Starting Vapi with squad config');
         await vapi.start({
-          squad: squadConfig
+          assistant: {
+            // Use the first member as the starting assistant
+            ...squadConfig.members[0].assistant
+          }
         });
       } else if (assistantId) {
         await vapi.start(assistantId);
       } else if (squadId) {
-        await vapi.start({
-          squadId: squadId
-        });
+        // For pre-created squads, use the squad ID
+        await vapi.start(squadId);
       } else {
         const errorMsg = "No assistantId, squadId, or squadConfig provided to connect.";
         setError(errorMsg);
@@ -189,7 +197,7 @@ export const useVapi = (options: UseVapiOptions) => {
       setIsSpeaking(false);
       options.onError?.(err);
     }
-  }, [isConnected, isLoading, options, vapiPublicKey]);
+  }, [isConnected, isLoading, hasTriedConnection, options, vapiPublicKey]);
 
   const disconnect = useCallback(async () => {
     if (!isConnected || !vapiInstance) return;
@@ -201,6 +209,7 @@ export const useVapi = (options: UseVapiOptions) => {
       setVapiInstance(null);
       setVolumeLevel(0);
       setIsMuted(false);
+      setHasTriedConnection(false);
       options.onDisconnect?.();
     } catch (err) {
       console.error('Failed to disconnect from Vapi:', err);
@@ -266,6 +275,7 @@ export const useVapi = (options: UseVapiOptions) => {
     isSpeaking,
     volumeLevel,
     isMuted,
+    hasTriedConnection,
     connect,
     disconnect,
     sendMessage,

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +20,6 @@ interface DebateArenaProps {
 const absurdExpressions = ["adjusting his toga dramatically", "counting invisible sheep", "practicing air guitar solos", "doing tiny desk push-ups", "organizing his beard hair by length", "sketching doodles of cats", "humming show tunes quietly", "tapping morse code with his fingers", "doing interpretive dance moves", "practicing magic tricks", "folding origami cranes", "shadow boxing with wisdom", "playing invisible chess", "conducting an invisible orchestra", "doing breathing exercises", "stretching like a cat", "swinging his feet while listening", "sitting grumpily with arms crossed", "twirling his mustache thoughtfully", "cleaning his fingernails", "stacking imaginary blocks", "doing neck rolls", "practicing facial expressions in a mirror", "knitting an invisible scarf"];
 
 export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [currentSpeaker, setCurrentSpeaker] = useState<'philosopher1' | 'philosopher2' | 'moderator' | 'user'>('moderator');
   const [challengeCount, setChallengeCount] = useState(0);
   const [debateTime, setDebateTime] = useState(0);
@@ -39,11 +37,21 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const squadConfig = getSquadConfig(debateId);
 
   // Vapi integration with improved message handling
-  const { isConnected, isLoading: vapiLoading, error, connect, disconnect, sendMessage, mute, unmute, isMuted } = useVapi({
+  const { 
+    isConnected, 
+    isLoading: vapiLoading, 
+    error, 
+    hasTriedConnection,
+    connect, 
+    disconnect, 
+    sendMessage, 
+    mute, 
+    unmute, 
+    isMuted 
+  } = useVapi({
     onConnect: () => {
       console.log('Connected to Vapi');
       setTranscript(prev => [...prev, 'System: Connected to voice debate']);
-      setIsInitialLoading(false);
       toast({
         title: "Connected",
         description: "Voice debate connection established",
@@ -74,8 +82,10 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     },
     onError: (error) => {
       console.error('Vapi error:', error);
-      setTranscript(prev => [...prev, `System: Error - ${error.message || 'Connection failed'}`]);
-      setIsInitialLoading(false);
+      // Only add error message once, not continuously
+      if (!transcript.some(msg => msg.includes('Error -'))) {
+        setTranscript(prev => [...prev, `System: Error - ${error.message || 'Connection failed'}`]);
+      }
       toast({
         title: "Connection Error",
         description: error.message || "Failed to connect to voice debate",
@@ -83,16 +93,6 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
       });
     }
   });
-
-  // Initialize loading screen until Vapi connection is established
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isConnected && !vapiLoading) {
-        setIsInitialLoading(false);
-      }
-    }, 10000); // 10 second timeout
-    return () => clearTimeout(timer);
-  }, [isConnected, vapiLoading]);
 
   // Get debate config based on ID
   const getDebateConfig = (id: string) => {
@@ -185,34 +185,32 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Initialize Vapi connection with squad config
+  // Initialize Vapi connection with squad config - only once
   useEffect(() => {
-    if (squadConfig) {
+    if (squadConfig && !hasTriedConnection) {
       console.log('Connecting to Vapi with squad config:', squadConfig);
       connect({ squadConfig });
-    } else {
-      console.error('No squad config found for debate:', debateId);
-      setIsInitialLoading(false);
-      toast({
-        title: "Configuration Error",
-        description: "No squad configuration found for this debate",
-        variant: "destructive",
-      });
     }
+  }, [squadConfig, hasTriedConnection, connect]);
 
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
       disconnect();
     };
-  }, [connect, disconnect, squadConfig, debateId, toast]);
+  }, [disconnect]);
 
   // Auto-scroll transcript to bottom
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcript]);
 
-  // Show loading screen until Vapi connection is established
-  if (isInitialLoading || (vapiLoading && !isConnected)) {
-    return <LoadingScreen message="Connecting to the philosophical arena..." />;
+  // Show loading screen until Vapi connection is established or error occurs
+  if (!hasTriedConnection || (vapiLoading && !isConnected && !error)) {
+    return <LoadingScreen 
+      message={error ? error : "Connecting to the philosophical arena..."} 
+      isError={!!error}
+    />;
   }
 
   const formatTime = (seconds: number) => {
@@ -300,8 +298,8 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                 <Target className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="text-xs sm:text-sm">{challengeCount} challenges</span>
               </div>
-              <Badge className={`${isConnected ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : vapiLoading ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'} backdrop-blur-sm text-xs sm:text-sm px-2 sm:px-3 py-1`}>
-                {isConnected ? '🟢 LIVE' : vapiLoading ? '🟡 CONNECTING' : '🔴 OFFLINE'}
+              <Badge className={`${isConnected ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : error ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'} backdrop-blur-sm text-xs sm:text-sm px-2 sm:px-3 py-1`}>
+                {isConnected ? '🟢 LIVE' : error ? '🔴 ERROR' : '🟡 CONNECTING'}
               </Badge>
             </div>
           </div>
