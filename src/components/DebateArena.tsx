@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Mic, MicOff, Clock, Target, ChevronLeft, ChevronRight, User } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, Clock, Target, ChevronLeft, ChevronRight, User, ChevronUp, ChevronDown } from "lucide-react";
 import { useVapi } from "@/hooks/useVapi";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,6 +23,8 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const [currentChallengeSet, setCurrentChallengeSet] = useState(0);
   const [isUserMuted, setIsUserMuted] = useState(true);
   const [transcript, setTranscript] = useState<string[]>([]);
+  const [transcriptExpanded, setTranscriptExpanded] = useState(false);
+  const [challengesExpanded, setChallengesExpanded] = useState(false);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -216,156 +218,140 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     ["What would your opponents say?", "How did you reach that conclusion?", "What if the opposite were true?", "What's your best evidence for this?"]
   ];
 
+  // All participants for avatar strip
+  const allParticipants = [
+    { ...debateConfig.moderator, id: 'moderator', type: 'moderator' as const },
+    { ...debateConfig.philosophers[0], id: 'philosopher1', type: 'philosopher' as const },
+    { ...debateConfig.philosophers[1], id: 'philosopher2', type: 'philosopher' as const }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
-      {/* Compact Header */}
-      <div className="px-4 py-3 border-b border-slate-700/30 flex-shrink-0">
+      {/* Header - Mobile Optimized */}
+      <div className="px-3 sm:px-4 py-3 border-b border-slate-700/30 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onBack} className="text-slate-300 hover:text-white">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+          <Button variant="ghost" onClick={onBack} className="text-slate-300 hover:text-white p-2">
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Back</span>
           </Button>
           
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-lg sm:text-xl font-bold text-white font-serif truncate">{debateConfig.title}</h1>
-            <p className="text-slate-400 text-xs sm:text-sm truncate">"{debateConfig.topic}"</p>
+          <div className="text-center flex-1 px-2">
+            <h1 className="text-sm sm:text-lg font-bold text-white font-serif truncate">{debateConfig.title}</h1>
+            <p className="text-slate-400 text-xs truncate hidden sm:block">"{debateConfig.topic}"</p>
           </div>
           
-          <div className="flex items-center gap-3 text-slate-400 text-sm">
+          <div className="flex items-center gap-2 sm:gap-3 text-slate-400 text-xs sm:text-sm">
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span className="text-xs">{formatTime(debateTime)}</span>
+              <span>{formatTime(debateTime)}</span>
             </div>
             <div className="flex items-center gap-1">
               <Target className="h-3 w-3" />
-              <span className="text-xs">{challengeCount}</span>
+              <span>{challengeCount}</span>
             </div>
-            <Badge className={`${isConnected ? 'bg-green-500' : isLoading ? 'bg-yellow-500' : 'bg-red-500'} text-white text-xs px-2 py-1`}>
+            <Badge className={`${isConnected ? 'bg-green-500' : isLoading ? 'bg-yellow-500' : 'bg-red-500'} text-white text-xs px-1.5 py-0.5`}>
               {isConnected ? '🟢' : isLoading ? '🟡' : '🔴'}
             </Badge>
           </div>
         </div>
       </div>
 
-      {/* Main Content - Mobile First Layout */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+      {/* Main Content - Mobile First Design */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         
-        {/* Left Column: Participants (Mobile: Top, Desktop: Left) */}
-        <div className="lg:w-80 flex-shrink-0 p-4 border-b lg:border-b-0 lg:border-r border-slate-700/30">
-          <div className="space-y-3">
-            {/* Compact Participant Cards */}
-            <div className="grid grid-cols-3 lg:grid-cols-1 gap-2 lg:gap-3">
+        {/* Desktop Layout: Sidebar + Main */}
+        <div className="hidden lg:flex flex-1 overflow-hidden">
+          {/* Desktop Sidebar - Participants */}
+          <div className="w-72 xl:w-80 flex-shrink-0 p-4 border-r border-slate-700/30 bg-slate-800/20">
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-white tracking-wider mb-4">PARTICIPANTS</h3>
               
-              {/* Moderator Card - Compact */}
-              <div className={`relative overflow-hidden rounded-lg border transition-all duration-300 ${
-                currentSpeaker === 'moderator' 
-                  ? 'border-amber-400/60 bg-amber-500/10 scale-105' 
-                  : 'border-slate-600/40 bg-slate-800/20'
-              }`}>
-                <div className="p-3">
-                  <div className="flex lg:flex-col items-center lg:items-start gap-2">
-                    <div className="text-lg lg:text-xl">{debateConfig.moderator.emoji}</div>
-                    <div className="text-center lg:text-left flex-1 min-w-0">
-                      <h4 className="font-bold text-white text-xs lg:text-sm font-serif truncate">{debateConfig.moderator.name}</h4>
-                      <div className="flex items-center justify-center lg:justify-start gap-1 mb-1">
-                        <User className="h-2 w-2 text-amber-400" />
-                        <Badge className="text-xs px-1 py-0 bg-amber-600/20 text-amber-400 text-[10px]">MOD</Badge>
-                      </div>
-                      {currentSpeaker === 'moderator' && (
-                        <Badge className="bg-green-500/20 text-green-400 text-[10px] animate-pulse">LIVE</Badge>
-                      )}
-                    </div>
-                  </div>
-                  {currentSpeaker !== 'moderator' && (
-                    <p className="text-slate-400 text-[10px] italic mt-1 truncate hidden lg:block">
-                      {philosopherExpressions[debateConfig.moderator.name] || "maintaining order"}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Philosopher Cards - Compact */}
-              {debateConfig.philosophers.map((philosopher, index) => {
-                const isActive = (currentSpeaker === 'philosopher1' && index === 0) || (currentSpeaker === 'philosopher2' && index === 1);
-                const colorMap = {
-                  emerald: 'emerald-400',
-                  red: 'red-400', 
-                  blue: 'blue-400',
-                  purple: 'purple-400'
-                };
-                const borderColor = colorMap[philosopher.color as keyof typeof colorMap] || 'blue-400';
-                
-                return (
-                  <div key={philosopher.name} className={`relative overflow-hidden rounded-lg border transition-all duration-300 ${
-                    isActive 
-                      ? `border-${borderColor}/60 bg-${philosopher.color}-500/10 scale-105` 
-                      : 'border-slate-600/40 bg-slate-800/20'
-                  }`}>
-                    <div className="p-3">
-                      <div className="flex lg:flex-col items-center lg:items-start gap-2">
-                        <div className="text-lg lg:text-xl">{philosopher.emoji}</div>
-                        <div className="text-center lg:text-left flex-1 min-w-0">
-                          <h4 className="font-bold text-white text-xs lg:text-sm font-serif truncate">{philosopher.name}</h4>
-                          <Badge className="text-xs px-1 py-0 bg-slate-600/30 text-slate-300 mb-1 text-[10px]">
-                            {philosopher.subtitle.slice(0, 8)}
-                          </Badge>
-                          {isActive && (
-                            <Badge className="bg-green-500/20 text-green-400 text-[10px] animate-pulse">LIVE</Badge>
-                          )}
+              {/* Desktop Participant Cards */}
+              <div className="space-y-3">
+                {allParticipants.map((participant) => {
+                  const isActive = (currentSpeaker === participant.id);
+                  const colorMap = {
+                    emerald: 'emerald-400',
+                    red: 'red-400', 
+                    blue: 'blue-400',
+                    purple: 'purple-400',
+                    amber: 'amber-400'
+                  };
+                  const borderColor = colorMap[participant.color as keyof typeof colorMap] || 'amber-400';
+                  
+                  return (
+                    <div key={participant.id} className={`relative overflow-hidden rounded-xl border transition-all duration-300 ${
+                      isActive 
+                        ? `border-${borderColor}/60 bg-${participant.color}-500/10 scale-105 shadow-lg` 
+                        : 'border-slate-600/40 bg-slate-800/30 hover:bg-slate-800/50'
+                    }`}>
+                      <div className="p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="text-2xl">{participant.emoji}</div>
+                          <div className="flex-1">
+                            <h4 className="font-bold text-white text-sm font-serif">{participant.name}</h4>
+                            <div className="flex items-center gap-2 mb-1">
+                              {participant.type === 'moderator' && (
+                                <Badge className="text-xs px-1.5 py-0 bg-amber-600/20 text-amber-400">MOD</Badge>
+                              )}
+                              <Badge className="text-xs px-1.5 py-0 bg-slate-600/30 text-slate-300">
+                                {participant.subtitle}
+                              </Badge>
+                            </div>
+                          </div>
                         </div>
+                        
+                        {isActive ? (
+                          <Badge className="bg-green-500/20 text-green-400 text-xs animate-pulse">SPEAKING</Badge>
+                        ) : (
+                          <p className="text-slate-400 text-xs italic">
+                            {philosopherExpressions[participant.name] || "listening attentively"}
+                          </p>
+                        )}
                       </div>
-                      {!isActive && (
-                        <p className="text-slate-400 text-[10px] italic mt-1 truncate hidden lg:block">
-                          {philosopherExpressions[philosopher.name] || "pondering existence"}
-                        </p>
-                      )}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Column: Debate & Transcript */}
-        <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 flex flex-col lg:flex-row min-h-0">
-            
-            {/* Main Speech Area */}
-            <div className="flex-1 flex flex-col p-4 min-h-0">
-              {/* Speaker Display */}
-              <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-4 mb-4 flex-1 flex flex-col justify-center min-h-0">
-                <div className="text-center mb-4">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="text-2xl">{activeParticipant?.emoji || '⚖️'}</div>
-                    <h2 className="text-xl font-bold text-white font-serif">
+          {/* Desktop Main Content */}
+          <div className="flex-1 flex flex-col">
+            {/* Desktop Speech Area */}
+            <div className="flex-1 p-6 flex flex-col">
+              <div className="flex-1 bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 flex flex-col justify-center">
+                <div className="text-center mb-6">
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    <div className="text-4xl">{activeParticipant?.emoji || '⚖️'}</div>
+                    <h2 className="text-2xl font-bold text-white font-serif">
                       {activeParticipant?.name.toUpperCase() || 'MODERATOR'}
                     </h2>
                   </div>
-                  <Badge variant="secondary" className="bg-slate-700 text-slate-300 text-xs">
+                  <Badge variant="secondary" className="bg-slate-700 text-slate-300">
                     {activeParticipant?.subtitle || 'The Great Questioner'}
                   </Badge>
                 </div>
                 
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center max-w-lg">
-                    <p className="text-slate-200 text-sm lg:text-base leading-relaxed italic mb-4">
+                <div className="flex-1 flex items-center justify-center mb-6">
+                  <div className="text-center max-w-2xl">
+                    <p className="text-slate-200 text-lg leading-relaxed italic mb-4">
                       "{currentStatement}"
                     </p>
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-slate-400 text-sm">Speaking...</span>
+                      <span className="text-slate-400">Speaking...</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Voice Control */}
+                {/* Desktop Voice Control */}
                 <div className="text-center">
                   <Button 
                     onClick={handleMuteToggle} 
                     size="lg" 
                     disabled={!isConnected}
-                    className={`font-bold px-6 py-3 rounded-xl backdrop-blur-sm transition-all duration-200 hover:scale-105 ${
+                    className={`font-bold px-8 py-4 rounded-xl transition-all duration-200 hover:scale-105 ${
                       isUserMuted 
                         ? 'bg-gradient-to-r from-red-600/20 to-orange-500/20 hover:from-red-600/30 hover:to-orange-500/30 border border-red-500/30 text-red-300' 
                         : 'bg-gradient-to-r from-green-600/20 to-emerald-500/20 hover:from-green-600/30 hover:to-emerald-500/30 border border-green-500/30 text-green-300'
@@ -373,19 +359,17 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                   >
                     {isUserMuted ? (
                       <>
-                        <MicOff className="h-4 w-4 mr-2" />
-                        <span className="hidden sm:inline">UNMUTE TO SPEAK</span>
-                        <span className="sm:hidden">UNMUTE</span>
+                        <MicOff className="h-5 w-5 mr-2" />
+                        UNMUTE TO SPEAK
                       </>
                     ) : (
                       <>
-                        <Mic className="h-4 w-4 mr-2 animate-pulse" />
-                        <span className="hidden sm:inline">YOU'RE LIVE</span>
-                        <span className="sm:hidden">LIVE</span>
+                        <Mic className="h-5 w-5 mr-2 animate-pulse" />
+                        YOU'RE LIVE
                       </>
                     )}
                   </Button>
-                  <p className="text-slate-400 text-xs mt-2">
+                  <p className="text-slate-400 text-sm mt-2">
                     {error 
                       ? 'Setup required: Configure your Vapi keys' 
                       : !isConnected 
@@ -397,11 +381,190 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                   </p>
                 </div>
               </div>
+            </div>
 
-              {/* Quick Challenges - Compact */}
-              <div className="bg-slate-800/20 backdrop-blur-sm rounded-xl p-3 border border-slate-700/30">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xs font-bold text-white">💭 Quick Challenges</h3>
+            {/* Desktop Quick Challenges & Transcript */}
+            <div className="p-6 pt-0 space-y-4">
+              {/* Desktop Quick Challenges */}
+              <div className="bg-slate-800/20 backdrop-blur-sm rounded-xl p-4 border border-slate-700/30">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-white">💭 Quick Challenges</h3>
+                  <div className="flex gap-1">
+                    <Button onClick={prevChallengeSet} variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400">
+                      <ChevronLeft className="h-3 w-3" />
+                    </Button>
+                    <Button onClick={nextChallengeSet} variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400">
+                      <ChevronRight className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  {socraticChallenges[currentChallengeSet].map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleQuickChallenge(suggestion)}
+                      disabled={!isConnected}
+                      className={`p-2 rounded-lg bg-slate-700/30 hover:bg-slate-600/40 text-slate-300 hover:text-white text-sm transition-all duration-200 hover:scale-105 border border-slate-600/20 ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      "{suggestion}"
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Desktop Transcript */}
+              <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-4 border border-slate-700/30 max-h-60">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-white tracking-wider">LIVE TRANSCRIPT</h3>
+                  <span className="text-xs text-slate-400">{getCurrentSpeakerName()}</span>
+                </div>
+                
+                <ScrollArea className="h-48">
+                  <div className="space-y-2 pr-2">
+                    {transcript.length === 0 ? (
+                      <div className="flex items-center justify-center h-32 text-slate-400 text-sm">
+                        Waiting for conversation to begin...
+                      </div>
+                    ) : (
+                      transcript.map((message, index) => (
+                        <div key={index} className="border-l-2 border-slate-600/30 pl-3">
+                          <p className="text-slate-200 text-sm leading-relaxed break-words">
+                            {message}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                    <div ref={transcriptEndRef} />
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="lg:hidden flex-1 flex flex-col">
+          {/* Mobile Participant Avatar Strip */}
+          <div className="px-4 py-3 border-b border-slate-700/30">
+            <div className="flex items-center gap-3 overflow-x-auto pb-2">
+              {allParticipants.map((participant) => {
+                const isActive = (currentSpeaker === participant.id);
+                const colorMap = {
+                  emerald: 'emerald-400',
+                  red: 'red-400', 
+                  blue: 'blue-400',
+                  purple: 'purple-400',
+                  amber: 'amber-400'
+                };
+                
+                return (
+                  <div key={participant.id} className={`flex-shrink-0 flex flex-col items-center p-2 rounded-xl transition-all duration-300 ${
+                    isActive 
+                      ? `bg-${participant.color}-500/20 border border-${participant.color}-400/40 scale-110` 
+                      : 'bg-slate-800/30 border border-slate-600/30'
+                  }`}>
+                    <div className={`text-2xl mb-1 ${isActive ? 'animate-bounce' : ''}`}>
+                      {participant.emoji}
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs font-semibold text-white truncate max-w-16">
+                        {participant.name}
+                      </div>
+                      {participant.type === 'moderator' && (
+                        <Badge className="text-[10px] px-1 py-0 bg-amber-600/30 text-amber-300 mt-1">MOD</Badge>
+                      )}
+                      {isActive && (
+                        <Badge className="bg-green-500/30 text-green-300 text-[10px] px-1 py-0 mt-1 animate-pulse">LIVE</Badge>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mobile Current Speaker Spotlight */}
+          <div className="flex-1 p-4 flex flex-col">
+            <div className="flex-1 bg-slate-800/30 backdrop-blur-sm rounded-2xl p-6 flex flex-col justify-center min-h-0">
+              <div className="text-center mb-4">
+                <div className="text-4xl mb-2">{activeParticipant?.emoji || '⚖️'}</div>
+                <h2 className="text-xl font-bold text-white font-serif mb-1">
+                  {activeParticipant?.name.toUpperCase() || 'MODERATOR'}
+                </h2>
+                <Badge variant="secondary" className="bg-slate-700 text-slate-300 text-xs">
+                  {activeParticipant?.subtitle || 'The Great Questioner'}
+                </Badge>
+              </div>
+              
+              <div className="flex-1 flex items-center justify-center mb-4 min-h-0">
+                <div className="text-center">
+                  <p className="text-slate-200 text-sm leading-relaxed italic mb-3">
+                    "{currentStatement}"
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-slate-400 text-sm">Speaking...</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Voice Control */}
+              <div className="text-center">
+                <Button 
+                  onClick={handleMuteToggle} 
+                  size="lg" 
+                  disabled={!isConnected}
+                  className={`font-bold px-6 py-4 rounded-2xl transition-all duration-200 hover:scale-105 w-full max-w-xs mx-auto ${
+                    isUserMuted 
+                      ? 'bg-gradient-to-r from-red-600/20 to-orange-500/20 hover:from-red-600/30 hover:to-orange-500/30 border border-red-500/30 text-red-300' 
+                      : 'bg-gradient-to-r from-green-600/20 to-emerald-500/20 hover:from-green-600/30 hover:to-emerald-500/30 border border-green-500/30 text-green-300'
+                  } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {isUserMuted ? (
+                    <>
+                      <MicOff className="h-5 w-5 mr-2" />
+                      UNMUTE TO SPEAK
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-5 w-5 mr-2 animate-pulse" />
+                      YOU'RE LIVE
+                    </>
+                  )}
+                </Button>
+                <p className="text-slate-400 text-xs mt-2">
+                  {error 
+                    ? 'Setup required: Configure your Vapi keys' 
+                    : !isConnected 
+                      ? 'Connecting...' 
+                      : isUserMuted 
+                        ? 'Tap to join the debate' 
+                        : 'You can now speak to the philosophers'
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Collapsible Quick Challenges */}
+          <div className="px-4 pb-2">
+            <button
+              onClick={() => setChallengesExpanded(!challengesExpanded)}
+              className="w-full bg-slate-800/20 backdrop-blur-sm rounded-xl p-3 border border-slate-700/30 flex items-center justify-between"
+            >
+              <span className="text-sm font-bold text-white">💭 Quick Challenges</span>
+              {challengesExpanded ? (
+                <ChevronUp className="h-4 w-4 text-slate-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              )}
+            </button>
+            
+            {challengesExpanded && (
+              <div className="mt-2 bg-slate-800/20 backdrop-blur-sm rounded-xl p-3 border border-slate-700/30">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs text-slate-400">Choose a challenge:</span>
                   <div className="flex gap-1">
                     <Button onClick={prevChallengeSet} variant="ghost" size="sm" className="h-6 w-6 p-0 text-slate-400">
                       <ChevronLeft className="h-3 w-3" />
@@ -412,30 +575,44 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="space-y-2">
                   {socraticChallenges[currentChallengeSet].map((suggestion, index) => (
                     <button
                       key={index}
                       onClick={() => handleQuickChallenge(suggestion)}
                       disabled={!isConnected}
-                      className={`p-2 rounded-lg bg-slate-700/30 hover:bg-slate-600/40 text-slate-300 hover:text-white text-xs transition-all duration-200 hover:scale-105 border border-slate-600/20 ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`w-full p-3 rounded-lg bg-slate-700/30 hover:bg-slate-600/40 text-slate-300 hover:text-white text-sm transition-all duration-200 border border-slate-600/20 text-left ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       "{suggestion}"
                     </button>
                   ))}
                 </div>
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Live Transcript - Compact */}
-            <div className="lg:w-80 flex flex-col p-4 border-t lg:border-t-0 lg:border-l border-slate-700/30 min-h-0">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-bold text-white tracking-wider">LIVE TRANSCRIPT</h3>
-                <h4 className="text-xs font-semibold text-slate-300 truncate">{getCurrentSpeakerName()}</h4>
+          {/* Mobile Expandable Transcript */}
+          <div className="px-4 pb-4">
+            <button
+              onClick={() => setTranscriptExpanded(!transcriptExpanded)}
+              className="w-full bg-slate-800/30 backdrop-blur-sm rounded-xl p-3 border border-slate-700/30 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-white">Live Transcript</span>
+                <Badge className="bg-green-500/20 text-green-400 text-xs">
+                  {getCurrentSpeakerName()}
+                </Badge>
               </div>
-              
-              <div className="flex-1 min-h-0 bg-slate-800/30 backdrop-blur-sm rounded-xl p-3 border border-slate-700/30 flex flex-col">
-                <ScrollArea className="flex-1 min-h-0">
+              {transcriptExpanded ? (
+                <ChevronUp className="h-4 w-4 text-slate-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              )}
+            </button>
+            
+            {transcriptExpanded && (
+              <div className="mt-2 bg-slate-800/30 backdrop-blur-sm rounded-xl p-3 border border-slate-700/30 max-h-60">
+                <ScrollArea className="h-52">
                   <div className="space-y-2 pr-2">
                     {transcript.length === 0 ? (
                       <div className="flex items-center justify-center h-32 text-slate-400 text-sm">
@@ -453,13 +630,8 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                     <div ref={transcriptEndRef} />
                   </div>
                 </ScrollArea>
-                
-                <div className="flex items-center justify-center gap-2 mt-2 pt-2 border-t border-slate-700/30">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-slate-400 text-xs">Live conversation</span>
-                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
