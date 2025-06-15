@@ -1,4 +1,3 @@
-
 import { Hero } from "@/components/ui/hero";
 import { Mic, ArrowRight } from "lucide-react";
 
@@ -11,12 +10,12 @@ export const HeroSection = ({ onEnterArena }: HeroSectionProps) => {
     <div className="flex flex-col items-center">
       <div className="flex items-center justify-center gap-4 mb-6">
         <div className="text-4xl">🏛️</div>
-        <span className="text-5xl md:text-7xl font-bold text-white font-serif tracking-tight">
+        <span className="text-5xl md:text-7xl font-medium text-white font-serif tracking-tight">
           Philosophy
         </span>
         <div className="text-4xl">🥊</div>
       </div>
-      <span className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent font-serif">
+      <span className="text-4xl md:text-6xl font-medium bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent font-serif">
         FIGHT CLUB
       </span>
     </div>
