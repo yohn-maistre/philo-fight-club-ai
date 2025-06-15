@@ -5,7 +5,7 @@ import { BattleCard } from "@/components/BattleCard";
 import { DebateArena } from "@/components/DebateArena";
 import { MarqueeAnimation } from "@/components/ui/marquee-effect";
 import { ExpandableTabs, type TabItem } from "@/components/ui/expandable-tabs-1";
-import { Zap, User, Sparkles, Mail } from "lucide-react";
+import { Zap, User, Sparkles, Mail, Crown } from "lucide-react";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'battles' | 'arena'>('landing');
@@ -17,25 +17,25 @@ const Index = () => {
       id: "classic",
       icon: User,
       label: "Classic",
-      color: "bg-blue-600",
+      color: "bg-gradient-to-r from-emerald-600 to-emerald-700",
     },
     {
       id: "contemporary",
       icon: Zap,
       label: "Modern",
-      color: "bg-purple-500",
+      color: "bg-gradient-to-r from-blue-600 to-blue-700",
     },
     {
       id: "provocative",
       icon: Sparkles,
       label: "Provocative",
-      color: "bg-red-500",
+      color: "bg-gradient-to-r from-purple-600 to-purple-700",
     },
     {
       id: "wild",
       icon: Mail,
       label: "Wild Cards",
-      color: "bg-emerald-500",
+      color: "bg-gradient-to-r from-red-600 to-red-700",
     },
   ];
 
@@ -329,28 +329,37 @@ const Index = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="py-12 px-4 max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+        <div className="py-8 md:py-12 px-4 max-w-7xl mx-auto">
+          <div className="text-center mb-8 md:mb-12">
             <button 
               onClick={handleBackToLanding}
-              className="text-slate-400 hover:text-white mb-6 transition-colors"
+              className="text-slate-400 hover:text-white mb-6 transition-colors flex items-center gap-2 mx-auto"
             >
               ← Back to Home
             </button>
-            <h1 className="text-4xl font-bold text-white mb-4 font-serif">Choose Your Philosophical Battle</h1>
-            <p className="text-slate-300 text-lg mb-6">Select a debate to join as Socratic challenger</p>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 font-serif">Choose Your Philosophical Battle</h1>
+            <p className="text-slate-300 text-base md:text-lg mb-6">Select a debate to join as Socratic challenger</p>
+            
+            {/* Socrates Moderator Indicator */}
+            <div className="flex items-center justify-center gap-3 mb-8 p-4 bg-slate-800/30 rounded-xl border border-slate-700/50 max-w-md mx-auto">
+              <Crown className="w-6 h-6 text-yellow-400" />
+              <div className="text-left">
+                <p className="text-white font-medium">Moderated by Socrates</p>
+                <p className="text-slate-400 text-sm">The master of questioning guides each debate</p>
+              </div>
+            </div>
             
             <div className="flex justify-center mb-8">
               <ExpandableTabs 
                 tabs={tabs} 
                 defaultTabId="classic"
                 onTabChange={setActiveSection}
-                className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50"
+                className="w-full max-w-2xl"
               />
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {currentBattles.map((battle) => (
               <BattleCard
                 key={battle.id}

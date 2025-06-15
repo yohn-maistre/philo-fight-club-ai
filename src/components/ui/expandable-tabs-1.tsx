@@ -36,7 +36,7 @@ export const ExpandableTabs = ({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-secondary text-secondary-foreground shadow-sm",
+        "flex items-center gap-2 md:gap-3 p-3 md:p-4 rounded-2xl bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 shadow-lg",
         className,
       )}
     >
@@ -49,14 +49,15 @@ export const ExpandableTabs = ({
             key={tab.id}
             layout
             className={cn(
-              "flex items-center justify-center rounded-xl cursor-pointer overflow-hidden h-[50px]",
+              "flex items-center justify-center rounded-xl cursor-pointer overflow-hidden h-12 md:h-14 transition-all duration-200 hover:scale-105",
               tab.color,
-              isActive ? "flex-1" : "flex-none",
+              isActive ? "flex-1 shadow-lg" : "flex-none hover:brightness-110",
             )}
             onClick={() => handleTabClick(tab.id)}
             initial={false}
             animate={{
-              width: isActive ? 140 : 50,
+              width: isActive ? "auto" : 48,
+              minWidth: isActive ? 120 : 48,
             }}
             transition={{
               type: "spring",
@@ -65,17 +66,17 @@ export const ExpandableTabs = ({
             }}
           >
             <motion.div
-              className="flex items-center justify-center h-[50px] aspect-square"
+              className="flex items-center justify-center h-12 md:h-14 px-3"
               initial={{ filter: "blur(10px)" }}
               animate={{ filter: "blur(0px)" }}
               exit={{ filter: "blur(10px)" }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <Icon className="flex-shrink-0 w-6 h-6 text-white aspect-square" />
+              <Icon className="flex-shrink-0 w-5 h-5 md:w-6 md:h-6 text-white" />
               <AnimatePresence initial={false}>
                 {isActive && (
                   <motion.span
-                    className="ml-3 text-white font-medium max-sm:hidden"
+                    className="ml-2 md:ml-3 text-white font-medium text-sm md:text-base whitespace-nowrap"
                     initial={{ opacity: 0, scaleX: 0.8 }}
                     animate={{ opacity: 1, scaleX: 1 }}
                     exit={{ opacity: 0, scaleX: 0.8 }}
