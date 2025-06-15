@@ -28,7 +28,7 @@ export const HeroSection = ({ onEnterArena }: HeroSectionProps) => {
             FIGHT CLUB
           </h1>
           <p className="text-xl md:text-2xl text-slate-300 font-medium mb-8">
-            Challenge Great Minds with Socratic Questions
+            Challenge Great Minds with Your Voice
           </p>
         </div>
 
@@ -36,22 +36,29 @@ export const HeroSection = ({ onEnterArena }: HeroSectionProps) => {
         <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 mb-8 border border-slate-700/50 max-w-2xl mx-auto">
           <div className="text-3xl mb-4">🎭</div>
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 font-serif">
-            Become the Socratic Challenger
+            Become the Voice of Inquiry
           </h2>
           <p className="text-slate-300 text-lg mb-6 leading-relaxed">
-            Listen to philosophical debates between great thinkers. 
-            <span className="text-yellow-400 font-semibold"> Interrupt with your questions</span> and watch them respond to your challenges.
+            Engage in live voice debates with AI philosophers. 
+            <span className="text-yellow-400 font-semibold"> Speak your challenges</span> and hear them respond to your questions in real-time.
           </p>
           
           <Button 
             onClick={onEnterArena}
             size="lg"
-            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-white font-semibold text-lg px-8 py-3 transform hover:scale-105 transition-all duration-200"
+            className="relative bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-white font-bold text-lg px-10 py-4 rounded-2xl transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-yellow-500/20"
           >
-            <Mic className="h-5 w-5 mr-2" />
-            Enter the Arena
-            <ArrowRight className="h-5 w-5 ml-2" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-600/20 to-yellow-500/20 blur-sm"></div>
+            <div className="relative flex items-center">
+              <Mic className="h-6 w-6 mr-3 animate-pulse" />
+              START VOICE DEBATE
+              <ArrowRight className="h-6 w-6 ml-3" />
+            </div>
           </Button>
+          
+          <p className="text-slate-400 text-sm mt-4">
+            🎤 Real-time voice interaction with AI philosophers
+          </p>
         </div>
       </div>
     </section>

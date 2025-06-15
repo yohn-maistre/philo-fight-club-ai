@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Mic, MicOff, Clock, Target, ChevronLeft, ChevronRight } from "lucide-react";
@@ -21,6 +21,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const [currentChallengeSet, setCurrentChallengeSet] = useState(0);
   const [isUserMuted, setIsUserMuted] = useState(true);
   const [transcript, setTranscript] = useState<string[]>([]);
+  const transcriptEndRef = useRef<HTMLDivElement>(null);
 
   // Vapi integration
   const { isConnected, isLoading, connect, disconnect, sendMessage } = useVapi({
@@ -334,6 +335,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                       </p>
                     </div>
                   ))}
+                  <div ref={transcriptEndRef} />
                 </div>
                 
                 {transcript.length > 0 && (
