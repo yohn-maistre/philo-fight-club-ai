@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Mic, Clock, Target, Zap } from "lucide-react";
+import { ArrowLeft, Mic, Clock, Target, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { InterruptInterface } from "@/components/InterruptInterface";
 import { PhilosopherResponse } from "@/components/PhilosopherResponse";
 
@@ -38,6 +38,15 @@ const absurdExpressions = [
   "knitting an invisible scarf"
 ];
 
+// Extended Socratic challenge suggestions
+const socraticChallenges = [
+  ["But what do you mean by that?", "Can you give a concrete example?", "What if someone disagreed?", "How do you know that's true?"],
+  ["What assumptions are you making?", "Could there be another explanation?", "What evidence supports this?", "How would you respond to critics?"],
+  ["What are the implications of that?", "Is this always the case?", "What would happen if everyone believed this?", "How do you define that term?"],
+  ["What's the strongest argument against your view?", "Where does this logic lead us?", "Can you think of any exceptions?", "Why should we accept this premise?"],
+  ["What would your opponents say?", "How did you reach that conclusion?", "What if the opposite were true?", "What's your best evidence for this?"]
+];
+
 export const DebateArena = ({
   debateId,
   onBack
@@ -49,6 +58,7 @@ export const DebateArena = ({
   const [currentStatement, setCurrentStatement] = useState("");
   const [showResponse, setShowResponse] = useState(false);
   const [philosopherExpressions, setPhilosopherExpressions] = useState<{[key: string]: string}>({});
+  const [currentChallengeSet, setCurrentChallengeSet] = useState(0);
 
   // Get debate config based on ID
   const getDebateConfig = (id: string) => {
@@ -155,6 +165,19 @@ export const DebateArena = ({
     setCurrentSpeaker(currentSpeaker === 'philosopher1' ? 'philosopher2' : 'philosopher1');
   };
 
+  const handleQuickChallenge = (challenge: string) => {
+    setChallengeCount(prev => prev + 1);
+    setShowResponse(true);
+  };
+
+  const nextChallengeSet = () => {
+    setCurrentChallengeSet(prev => (prev + 1) % socraticChallenges.length);
+  };
+
+  const prevChallengeSet = () => {
+    setCurrentChallengeSet(prev => (prev - 1 + socraticChallenges.length) % socraticChallenges.length);
+  };
+
   if (isInterrupted) {
     const activePhilosopher = currentSpeaker === 'philosopher1' ? debateConfig.philosophers[0] : debateConfig.philosophers[1];
     return <InterruptInterface philosopher={activePhilosopher.name} onChallengeComplete={handleChallengeComplete} onBack={() => setIsInterrupted(false)} />;
@@ -231,9 +254,12 @@ export const DebateArena = ({
                           )}
                         </div>
                         <p className="text-slate-400 text-sm mb-2">{philosopher.subtitle}</p>
-                        <p className="text-slate-300 text-xs italic">
-                          {philosopherExpressions[philosopher.name] || "pondering existence"}
-                        </p>
+                        {/* Only show expressions for non-active philosophers */}
+                        {!isActive && (
+                          <p className="text-slate-300 text-xs italic">
+                            {philosopherExpressions[philosopher.name] || "pondering existence"}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -274,37 +300,75 @@ export const DebateArena = ({
               </div>
             </div>
             
-            {/* Interrupt Button */}
+            {/* Modernized Interrupt Button */}
             <div className="text-center">
               <Button 
                 onClick={handleInterrupt} 
                 size="lg" 
-                className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold text-xl px-12 py-6 rounded-2xl hover:transform hover:scale-105 transition-all shadow-lg hover:shadow-red-500/20"
+                className="relative bg-gradient-to-r from-red-600/20 via-red-500/20 to-orange-500/20 hover:from-red-600/30 hover:via-red-500/30 hover:to-orange-500/30 border border-red-500/30 hover:border-red-400/40 text-red-300 hover:text-red-200 font-bold text-xl px-12 py-6 rounded-2xl backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-red-500/10"
               >
-                <Zap className="h-6 w-6 mr-3" />
-                INTERRUPT & CHALLENGE
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-2xl blur-sm"></div>
+                <div className="relative flex items-center">
+                  <Zap className="h-6 w-6 mr-3 animate-pulse" />
+                  INTERRUPT & CHALLENGE
+                </div>
               </Button>
               <p className="text-slate-400 text-sm mt-3">Challenge their logic with your Socratic question</p>
             </div>
           </div>
 
-          {/* Quick Challenge Suggestions */}
-          <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6">
-            <div className="text-center mb-4">
+          {/* Enhanced Socratic Challenge Toolkit with Slideshow */}
+          <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/30">
+            <div className="text-center mb-6">
               <h3 className="text-lg font-bold text-white mb-2">💭 Socratic Challenge Toolkit</h3>
               <p className="text-slate-400 text-sm">Quick challenges to get you started</p>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="flex gap-1">
+                  {socraticChallenges.map((_, index) => (
+                    <div 
+                      key={index}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === currentChallengeSet ? 'bg-blue-400' : 'bg-slate-600'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-3">
-              {["But what do you mean by that?", "Can you give a concrete example?", "What if someone disagreed?", "How do you know that's true?"].map((suggestion, index) => (
-                <button
-                  key={index}
-                  onClick={handleInterrupt}
-                  className="p-3 rounded-xl bg-slate-700/30 hover:bg-slate-700/50 text-slate-300 hover:text-white text-sm transition-all hover:transform hover:scale-105 border border-slate-600/20 hover:border-slate-500/40"
+            <div className="relative">
+              <div className="grid md:grid-cols-2 gap-3 mb-4">
+                {socraticChallenges[currentChallengeSet].map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleQuickChallenge(suggestion)}
+                    className="p-4 rounded-xl bg-slate-700/30 hover:bg-slate-600/40 text-slate-300 hover:text-white text-sm transition-all duration-200 hover:scale-105 border border-slate-600/20 hover:border-slate-500/40 backdrop-blur-sm hover:shadow-lg"
+                  >
+                    "{suggestion}"
+                  </button>
+                ))}
+              </div>
+              
+              <div className="flex justify-center gap-3">
+                <Button
+                  onClick={prevChallengeSet}
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl"
                 >
-                  "{suggestion}"
-                </button>
-              ))}
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+                <Button
+                  onClick={nextChallengeSet}
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
