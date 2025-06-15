@@ -1,17 +1,18 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Mic, Square, Target, Zap, Clock } from "lucide-react";
-
 interface InterruptInterfaceProps {
   philosopher: string;
   onChallengeComplete: (challenge: string) => void;
   onBack: () => void;
 }
-
-export const InterruptInterface = ({ philosopher, onChallengeComplete, onBack }: InterruptInterfaceProps) => {
+export const InterruptInterface = ({
+  philosopher,
+  onChallengeComplete,
+  onBack
+}: InterruptInterfaceProps) => {
   const [isRecording, setIsRecording] = useState(true);
   const [timeLeft, setTimeLeft] = useState(30);
   const [challenge, setChallenge] = useState("");
@@ -19,7 +20,6 @@ export const InterruptInterface = ({ philosopher, onChallengeComplete, onBack }:
 
   // Sample user challenge
   const sampleChallenge = `Wait, ${philosopher} - you say objective morality is for the weak, but aren't you making an objective claim about what strength means? How do you define 'strong' without some universal standard?`;
-
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -32,14 +32,13 @@ export const InterruptInterface = ({ philosopher, onChallengeComplete, onBack }:
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-
   useEffect(() => {
     // Simulate real-time analysis
     if (isRecording) {
       const analysisTimer = setTimeout(() => {
         setAnalysisResult({
           type: "LOGICAL CONTRADICTION",
-          difficulty: "HIGH", 
+          difficulty: "HIGH",
           impact: "May expose core weakness in position",
           reactions: {
             socrates: "nods approvingly...",
@@ -50,22 +49,15 @@ export const InterruptInterface = ({ philosopher, onChallengeComplete, onBack }:
       return () => clearTimeout(analysisTimer);
     }
   }, [isRecording]);
-
   const handleFinishChallenge = () => {
     setIsRecording(false);
     onChallengeComplete(challenge || sampleChallenge);
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={onBack}
-            className="text-slate-300 hover:text-white"
-          >
+          <Button variant="ghost" onClick={onBack} className="text-slate-300 hover:text-white">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Cancel Challenge
           </Button>
@@ -97,38 +89,28 @@ export const InterruptInterface = ({ philosopher, onChallengeComplete, onBack }:
                 <Mic className="h-6 w-6 text-red-400" />
                 <h2 className="text-xl font-bold text-white">YOU ARE SPEAKING:</h2>
               </div>
-              {isRecording && (
-                <Badge className="bg-red-500 hover:bg-red-600 text-white animate-pulse">
+              {isRecording && <Badge className="bg-red-500 hover:bg-red-600 text-white">
                   🔴 RECORDING
-                </Badge>
-              )}
+                </Badge>}
             </div>
             
             <div className="bg-slate-900/50 rounded-lg p-6 mb-6 min-h-[150px]">
               <p className="text-slate-200 text-lg leading-relaxed italic">
                 "{sampleChallenge}"
               </p>
-              {isRecording &&  (
-                <div className="flex items-center mt-4">
+              {isRecording && <div className="flex items-center mt-4">
                   <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse mr-3"></div>
                   <span className="text-slate-400">Listening for your challenge...</span>
-                </div>
-              )}
+                </div>}
             </div>
             
             <div className="flex justify-center gap-4">
-              <Button 
-                onClick={handleFinishChallenge}
-                className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-semibold px-6 py-3"
-              >
+              <Button onClick={handleFinishChallenge} className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-semibold px-6 py-3">
                 <Square className="h-4 w-4 mr-2" />
                 Finish Challenge
               </Button>
               
-              <Button 
-                variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white px-6 py-3"
-              >
+              <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white px-6 py-3">
                 🔄 Continue Speaking
               </Button>
             </div>
@@ -136,8 +118,7 @@ export const InterruptInterface = ({ philosopher, onChallengeComplete, onBack }:
         </Card>
 
         {/* Real-time Analysis */}
-        {analysisResult && (
-          <Card className="bg-slate-800/50 border-slate-700">
+        {analysisResult && <Card className="bg-slate-800/50 border-slate-700">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Zap className="h-5 w-5 text-yellow-400" />
@@ -169,9 +150,7 @@ export const InterruptInterface = ({ philosopher, onChallengeComplete, onBack }:
                 </div>
               </div>
             </CardContent>
-          </Card>
-        )}
+          </Card>}
       </div>
-    </div>
-  );
+    </div>;
 };
