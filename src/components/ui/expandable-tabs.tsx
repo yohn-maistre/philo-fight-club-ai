@@ -31,13 +31,13 @@ interface ExpandableTabsProps {
 const buttonVariants = {
   initial: {
     gap: 0,
-    paddingLeft: ".75rem",
-    paddingRight: ".75rem",
+    paddingLeft: "0.75rem",
+    paddingRight: "0.75rem",
   },
   animate: (isSelected: boolean) => ({
-    gap: isSelected ? ".75rem" : 0,
-    paddingLeft: isSelected ? "1.25rem" : ".75rem",
-    paddingRight: isSelected ? "1.25rem" : ".75rem",
+    gap: isSelected ? "0.75rem" : 0,
+    paddingLeft: isSelected ? "1.25rem" : "0.75rem",
+    paddingRight: isSelected ? "1.25rem" : "0.75rem",
   }),
 };
 
@@ -47,7 +47,11 @@ const spanVariants = {
   exit: { width: 0, opacity: 0 },
 };
 
-const transition = { delay: 0.1, type: "spring", bounce: 0, duration: 0.6 };
+const transition = { 
+  type: "spring" as const, 
+  bounce: 0, 
+  duration: 0.4 
+};
 
 export function ExpandableTabs({
   tabs,
@@ -55,7 +59,7 @@ export function ExpandableTabs({
   activeColor = "text-yellow-400",
   onChange,
 }: ExpandableTabsProps) {
-  const [selected, setSelected] = React.useState<number | null>(null);
+  const [selected, setSelected] = React.useState<number | null>(0);
   const outsideClickRef = React.useRef(null);
 
   useOnClickOutside(outsideClickRef, () => {
@@ -85,10 +89,11 @@ export function ExpandableTabs({
           return <Separator key={`separator-${index}`} />;
         }
 
-        const Icon = tab.icon;
+        const tabItem = tab as Tab;
+        const Icon = tabItem.icon;
         return (
           <motion.button
-            key={tab.title}
+            key={tabItem.title}
             variants={buttonVariants}
             initial={false}
             animate="animate"
@@ -113,7 +118,7 @@ export function ExpandableTabs({
                   transition={transition}
                   className="overflow-hidden whitespace-nowrap font-serif"
                 >
-                  {tab.title}
+                  {tabItem.title}
                 </motion.span>
               )}
             </AnimatePresence>

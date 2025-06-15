@@ -42,7 +42,7 @@ export const BattleCard = ({
       <CardContent className="p-6">
         <div className="mb-4">
           <h3 className="text-xl font-bold text-white font-serif mb-2">{title}</h3>
-          <Badge variant="secondary" className="bg-slate-700 text-slate-300 mb-3">
+          <Badge variant="secondary" className="bg-slate-700 text-slate-300 mb-3 hover:bg-slate-700">
             {topic}
           </Badge>
           <p className="text-slate-300 text-sm italic mb-4">"{description}"</p>

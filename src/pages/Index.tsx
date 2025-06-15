@@ -339,7 +339,20 @@ const Index = () => {
             </button>
             <h1 className="text-4xl font-bold text-white mb-4 font-serif">Choose Your Philosophical Battle</h1>
             <p className="text-slate-300 text-lg mb-2">Select a debate to join as Socratic challenger</p>
-            <p className="text-slate-400 text-sm mb-8">🧠 Socrates moderates all debates with wisdom and wit</p>
+            
+            {/* Enhanced Socrates Moderator Indicator */}
+            <div className="flex items-center justify-center gap-3 mb-8 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl max-w-md mx-auto backdrop-blur-sm">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center shadow-lg">
+                  <span className="text-slate-900 text-xl font-bold">🧠</span>
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-800 animate-pulse"></div>
+              </div>
+              <div className="text-left">
+                <p className="text-white font-semibold font-serif">Socrates Moderating</p>
+                <p className="text-slate-400 text-sm">Guiding wisdom & wit</p>
+              </div>
+            </div>
             
             {/* Category Tabs */}
             <div className="flex justify-center mb-8">
