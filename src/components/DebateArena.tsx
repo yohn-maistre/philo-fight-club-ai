@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +9,34 @@ interface DebateArenaProps {
   debateId: string;
   onBack: () => void;
 }
+
+// Move expressions outside component to prevent re-renders
+const absurdExpressions = [
+  "adjusting his toga dramatically",
+  "counting invisible sheep",
+  "practicing air guitar solos",
+  "doing tiny desk push-ups",
+  "organizing his beard hair by length",
+  "sketching doodles of cats",
+  "humming show tunes quietly",
+  "tapping morse code with his fingers",
+  "doing interpretive dance moves",
+  "practicing magic tricks",
+  "folding origami cranes",
+  "shadow boxing with wisdom",
+  "playing invisible chess",
+  "conducting an invisible orchestra",
+  "doing breathing exercises",
+  "stretching like a cat",
+  "swinging his feet while listening",
+  "sitting grumpily with arms crossed",
+  "twirling his mustache thoughtfully",
+  "cleaning his fingernails",
+  "stacking imaginary blocks",
+  "doing neck rolls",
+  "practicing facial expressions in a mirror",
+  "knitting an invisible scarf"
+];
 
 export const DebateArena = ({
   debateId,
@@ -24,34 +51,6 @@ export const DebateArena = ({
   const [philosopherExpressions, setPhilosopherExpressions] = useState<{[key: string]: string}>({});
 
   // Comical expressions that rotate randomly
-  const absurdExpressions = [
-    "adjusting his toga dramatically",
-    "counting invisible sheep",
-    "practicing air guitar solos",
-    "doing tiny desk push-ups",
-    "organizing his beard hair by length",
-    "sketching doodles of cats",
-    "humming show tunes quietly",
-    "tapping morse code with his fingers",
-    "doing interpretive dance moves",
-    "practicing magic tricks",
-    "folding origami cranes",
-    "shadow boxing with wisdom",
-    "playing invisible chess",
-    "conducting an invisible orchestra",
-    "doing breathing exercises",
-    "stretching like a cat",
-    "swinging his feet while listening",
-    "sitting grumpily with arms crossed",
-    "twirling his mustache thoughtfully",
-    "cleaning his fingernails",
-    "stacking imaginary blocks",
-    "doing neck rolls",
-    "practicing facial expressions in a mirror",
-    "knitting an invisible scarf"
-  ];
-
-  // Get debate config based on ID
   const getDebateConfig = (id: string) => {
     const configs = {
       "morality-debate": {
@@ -94,7 +93,7 @@ export const DebateArena = ({
 
   const debateConfig = getDebateConfig(debateId);
 
-  // Update expressions every 8-12 seconds
+  // Update expressions every 8-12 seconds with fixed interval
   useEffect(() => {
     const updateExpressions = () => {
       const newExpressions: {[key: string]: string} = {};
@@ -108,13 +107,11 @@ export const DebateArena = ({
     // Initial expressions
     updateExpressions();
 
-    // Update expressions every 8-12 seconds
-    const interval = setInterval(() => {
-      updateExpressions();
-    }, Math.random() * 4000 + 8000); // 8-12 seconds
+    // Set a fixed 10-second interval
+    const interval = setInterval(updateExpressions, 10000);
 
     return () => clearInterval(interval);
-  }, [debateConfig.philosophers, absurdExpressions]);
+  }, [debateConfig.philosophers]);
 
   useEffect(() => {
     const timer = setInterval(() => {
