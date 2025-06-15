@@ -48,7 +48,7 @@ export const getSquadConfig = (debateId: string): SquadConfig | null => {
             name: "Aristotle",
             model: {
               model: "gpt-4o",
-              provider: "openai",
+              provider: "groq",
               messages: [
                 {
                   role: "system",
@@ -111,7 +111,7 @@ You are moderating a debate between Socrates and Nietzsche on the nature of mora
             name: "Socrates",
             model: {
               model: "gpt-4o",
-              provider: "openai",
+              provider: "groq",
               messages: [
                 {
                   role: "system",
