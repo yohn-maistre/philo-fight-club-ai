@@ -124,15 +124,14 @@ export const InterruptInterface = ({
             <div className="flex justify-center gap-6">
               <Button 
                 onClick={handleFinishChallenge} 
-                className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-semibold px-10 py-6 rounded-2xl text-lg hover:transform hover:scale-105 transition-all shadow-lg"
+                className="bg-green-600/20 hover:bg-green-500/30 border border-green-500/30 hover:border-green-400/50 text-green-300 hover:text-green-200 font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg"
               >
                 <Square className="h-5 w-5 mr-2" />
                 Finish Challenge
               </Button>
               
               <Button 
-                variant="outline" 
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white px-10 py-6 rounded-2xl text-lg hover:transform hover:scale-105 transition-all"
+                className="bg-slate-800/50 hover:bg-slate-700/70 border border-slate-600/50 hover:border-slate-500/70 text-white font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105"
               >
                 🔄 Continue Speaking
               </Button>
