@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArenaBackground } from "@/components/ArenaBackground";
 import { SpeakingPlatform } from "@/components/SpeakingPlatform";
 import { CircularParticipants } from "@/components/CircularParticipants";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 interface DebateArenaProps {
   debateId: string;
@@ -18,6 +19,7 @@ interface DebateArenaProps {
 const absurdExpressions = ["adjusting his toga dramatically", "counting invisible sheep", "practicing air guitar solos", "doing tiny desk push-ups", "organizing his beard hair by length", "sketching doodles of cats", "humming show tunes quietly", "tapping morse code with his fingers", "doing interpretive dance moves", "practicing magic tricks", "folding origami cranes", "shadow boxing with wisdom", "playing invisible chess", "conducting an invisible orchestra", "doing breathing exercises", "stretching like a cat", "swinging his feet while listening", "sitting grumpily with arms crossed", "twirling his mustache thoughtfully", "cleaning his fingernails", "stacking imaginary blocks", "doing neck rolls", "practicing facial expressions in a mirror", "knitting an invisible scarf"];
 
 export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [currentSpeaker, setCurrentSpeaker] = useState<'philosopher1' | 'philosopher2' | 'moderator' | 'user'>('moderator');
   const [challengeCount, setChallengeCount] = useState(0);
   const [debateTime, setDebateTime] = useState(0);
@@ -30,8 +32,16 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Loading effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Vapi integration with improved message handling
-  const { isConnected, isLoading, error, connect, disconnect, sendMessage } = useVapi({
+  const { isConnected, isLoading: vapiLoading, error, connect, disconnect, sendMessage } = useVapi({
     onConnect: () => {
       console.log('Connected to Vapi');
       setTranscript(prev => [...prev, 'System: Connected to voice debate']);
@@ -179,6 +189,11 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcript]);
 
+  // Show loading screen
+  if (isLoading) {
+    return <LoadingScreen message="Preparing the philosophical arena..." />;
+  }
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -226,48 +241,59 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
       {/* Arena Background with Atmosphere */}
       <ArenaBackground />
       
-      {/* Header */}
-      <div className="relative z-10 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Button variant="ghost" onClick={onBack} className="text-slate-300 hover:text-white">
+      {/* Clean Modern Header */}
+      <div className="relative z-10 px-6 py-6">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <Button 
+            variant="ghost" 
+            onClick={onBack} 
+            className="text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-all duration-200"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            Exit Arena
           </Button>
           
-          <div className="flex items-center gap-4 text-slate-400">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-6 text-slate-400">
+            <div className="flex items-center gap-2 bg-slate-800/30 px-4 py-2 rounded-full backdrop-blur-sm border border-slate-700/30">
               <Clock className="h-4 w-4" />
-              <span>{formatTime(debateTime)}</span>
+              <span className="font-mono">{formatTime(debateTime)}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-slate-800/30 px-4 py-2 rounded-full backdrop-blur-sm border border-slate-700/30">
               <Target className="h-4 w-4" />
               <span>{challengeCount} challenges</span>
             </div>
-            <Badge className={`${isConnected ? 'bg-green-500 hover:bg-green-600' : isLoading ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-red-500 hover:bg-red-600'} text-white animate-pulse`}>
-              {isConnected ? '🟢 CONNECTED' : isLoading ? '🟡 CONNECTING' : '🔴 DISCONNECTED'}
+            <Badge className={`${isConnected ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : vapiLoading ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'} backdrop-blur-sm`}>
+              {isConnected ? '🟢 LIVE' : vapiLoading ? '🟡 CONNECTING' : '🔴 OFFLINE'}
             </Badge>
           </div>
         </div>
       </div>
 
-      {/* Main Arena Content */}
+      {/* Main Arena Content - Modernized Layout */}
       <div className="relative z-10 px-6 pb-6">
-        <div className="max-w-6xl mx-auto">
-          {/* Arena Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-yellow-200 mb-4 font-serif tracking-wide">{debateConfig.title}</h1>
-            <p className="text-yellow-300/80 text-xl font-serif italic">"{debateConfig.topic}"</p>
-            <div className="mt-4 inline-block px-6 py-2 bg-gradient-to-r from-yellow-600/20 to-yellow-500/20 border border-yellow-500/30 rounded-full backdrop-blur-sm">
-              <span className="text-yellow-400 font-semibold text-sm">🏛️ PHILOSOPHICAL COLOSSEUM</span>
+        <div className="max-w-7xl mx-auto">
+          {/* Clean Arena Title */}
+          <div className="text-center mb-12">
+            <div className="inline-block mb-4">
+              <div className="text-5xl mb-3">🏛️</div>
+              <h1 className="text-4xl font-bold text-white mb-2 font-serif tracking-wide">
+                {debateConfig.title}
+              </h1>
+              <p className="text-slate-300 text-lg font-serif italic mb-4">
+                "{debateConfig.topic}"
+              </p>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 rounded-full backdrop-blur-sm">
+                <span className="text-yellow-400 font-medium text-sm">PHILOSOPHICAL ARENA</span>
+              </div>
             </div>
           </div>
 
-          {/* Circular Participants Layout */}
-          <div className="mb-12">
+          {/* Circular Participants - More Spacious */}
+          <div className="mb-16">
             <CircularParticipants 
               currentSpeaker={currentSpeaker}
               debateConfig={debateConfig}
@@ -275,8 +301,8 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             />
           </div>
 
-          {/* Central Speaking Platform */}
-          <div className="mb-12 flex justify-center">
+          {/* Central Speaking Platform - Enhanced */}
+          <div className="mb-16 flex justify-center">
             <SpeakingPlatform 
               currentSpeaker={currentSpeaker}
               activeParticipant={activeParticipant}
@@ -284,73 +310,68 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             />
           </div>
             
-          {/* Voice Control Button */}
-          <div className="text-center mb-8">
+          {/* Modern Voice Control */}
+          <div className="text-center mb-12">
             <Button 
               onClick={handleMuteToggle} 
               size="lg" 
               disabled={!isConnected}
-              className={`relative font-bold text-xl px-12 py-6 rounded-2xl backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-2xl ${
+              className={`relative font-semibold text-lg px-10 py-5 rounded-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 shadow-2xl ${
                 isUserMuted 
-                  ? 'bg-gradient-to-r from-red-600/30 via-red-500/30 to-orange-500/30 hover:from-red-600/40 hover:via-red-500/40 hover:to-orange-500/40 border-2 border-red-500/50 hover:border-red-400/60 text-red-200 hover:text-red-100 shadow-red-500/20' 
-                  : 'bg-gradient-to-r from-green-600/30 via-green-500/30 to-emerald-500/30 hover:from-green-600/40 hover:via-green-500/40 hover:to-emerald-500/40 border-2 border-green-500/50 hover:border-green-400/60 text-green-200 hover:text-green-100 shadow-green-500/20'
-              } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  ? 'bg-gradient-to-r from-slate-700/50 via-slate-600/50 to-slate-700/50 hover:from-slate-600/60 hover:via-slate-500/60 hover:to-slate-600/60 border-2 border-slate-500/30 hover:border-slate-400/40 text-slate-200 hover:text-white' 
+                  : 'bg-gradient-to-r from-emerald-600/40 via-emerald-500/40 to-green-500/40 hover:from-emerald-600/50 hover:via-emerald-500/50 hover:to-green-500/50 border-2 border-emerald-500/40 hover:border-emerald-400/50 text-emerald-100 hover:text-white shadow-emerald-500/25'
+              } ${!isConnected ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
-              <div className={`absolute inset-0 rounded-2xl blur-md ${
-                isUserMuted ? 'bg-gradient-to-r from-red-600/20 to-orange-500/20' : 'bg-gradient-to-r from-green-600/20 to-emerald-500/20'
-              }`}></div>
-              <div className="relative flex items-center">
+              <div className="flex items-center gap-3">
                 {isUserMuted ? (
                   <>
-                    <MicOff className="h-6 w-6 mr-3 animate-pulse" />
-                    UNMUTE TO SPEAK
+                    <MicOff className="h-5 w-5" />
+                    Join Debate
                   </>
                 ) : (
                   <>
-                    <Mic className="h-6 w-6 mr-3 animate-pulse" />
-                    YOU'RE LIVE - SPEAK NOW
+                    <Mic className="h-5 w-5 animate-pulse" />
+                    Speaking Live
                   </>
                 )}
               </div>
             </Button>
-            <p className="text-slate-400 text-sm mt-3">
+            <p className="text-slate-400 text-sm mt-4 max-w-md mx-auto">
               {error 
-                ? 'Setup required: Configure your Vapi Public Key and Assistant ID' 
+                ? 'Voice system requires setup - Configure your Vapi credentials' 
                 : !isConnected 
-                  ? 'Connecting to voice debate...' 
+                  ? 'Establishing voice connection...' 
                   : isUserMuted 
-                    ? 'Click to join the debate with your voice' 
-                    : 'You can now speak directly to the philosophers'
+                    ? 'Click to join the philosophical debate with your voice' 
+                    : 'You are now participating in the live debate'
               }
             </p>
           </div>
 
-          {/* Expandable Live Transcript */}
+          {/* Clean Transcript Section */}
           {transcript.length > 0 && (
-            <div className="mb-8">
-              <div className="text-center mb-6">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <h3 className="text-2xl font-bold text-white font-serif">LIVE DEBATE TRANSCRIPT</h3>
+            <div className="mb-12">
+              <div className="bg-slate-900/40 backdrop-blur-sm rounded-3xl p-8 border border-slate-700/20 shadow-2xl">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                    <h3 className="text-xl font-semibold text-white">Live Transcript</h3>
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsTranscriptExpanded(!isTranscriptExpanded)}
-                    className="text-slate-400 hover:text-white"
+                    className="text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-xl"
                   >
                     {isTranscriptExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                   </Button>
                 </div>
-                <Badge variant="secondary" className="bg-slate-700 text-slate-300">
-                  Real-time conversation
-                </Badge>
-              </div>
-              
-              <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/30">
-                <ScrollArea className={`${isTranscriptExpanded ? 'h-96' : 'h-48'} transition-all duration-300`}>
-                  <div className="space-y-4 pr-4">
+                
+                <ScrollArea className={`${isTranscriptExpanded ? 'h-80' : 'h-48'} transition-all duration-300`}>
+                  <div className="space-y-3 pr-4">
                     {transcript.map((message, index) => (
-                      <div key={index} className="border-l-2 border-slate-600/30 pl-4">
-                        <p className="text-slate-200 leading-relaxed">
+                      <div key={index} className="border-l-2 border-slate-600/20 pl-4 py-2">
+                        <p className="text-slate-200 leading-relaxed text-sm">
                           {message}
                         </p>
                       </div>
@@ -358,68 +379,64 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                     <div ref={transcriptEndRef} />
                   </div>
                 </ScrollArea>
-                
-                <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-slate-700/30">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-slate-400 text-sm">Live conversation in progress...</span>
-                </div>
               </div>
             </div>
           )}
 
-          {/* Enhanced Socratic Challenge Toolkit */}
-          <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-6 border border-yellow-400/20 shadow-xl">
-            <div className="text-center mb-6">
-              <h3 className="text-lg font-bold text-yellow-200 mb-2">💭 Socratic Challenge Toolkit</h3>
-              <p className="text-yellow-300/70 text-sm">Quick challenges to get you started</p>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <div className="flex gap-1">
-                  {socraticChallenges.map((_, index) => (
-                    <div 
-                      key={index} 
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentChallengeSet ? 'bg-yellow-400' : 'bg-slate-600'
-                      }`} 
-                    />
-                  ))}
-                </div>
+          {/* Modern Challenge Toolkit */}
+          <div className="bg-slate-900/30 backdrop-blur-sm rounded-3xl p-8 border border-slate-700/20 shadow-xl">
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="text-2xl">💭</div>
+                <h3 className="text-2xl font-bold text-white">Socratic Arsenal</h3>
+              </div>
+              <p className="text-slate-400">Quick philosophical challenges to elevate the debate</p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                {socraticChallenges.map((_, index) => (
+                  <div 
+                    key={index} 
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index === currentChallengeSet ? 'bg-yellow-400' : 'bg-slate-600'
+                    }`} 
+                  />
+                ))}
               </div>
             </div>
             
-            <div className="relative">
-              <div className="grid md:grid-cols-2 gap-3 mb-4">
-                {socraticChallenges[currentChallengeSet].map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleQuickChallenge(suggestion)}
-                    disabled={!isConnected}
-                    className={`p-4 rounded-xl bg-slate-700/40 hover:bg-slate-600/50 text-slate-300 hover:text-white text-sm transition-all duration-200 hover:scale-105 border border-yellow-400/20 hover:border-yellow-400/40 backdrop-blur-sm hover:shadow-lg ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    "{suggestion}"
-                  </button>
-                ))}
-              </div>
-              
-              <div className="flex justify-center gap-3">
-                <Button 
-                  onClick={prevChallengeSet} 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-yellow-300 hover:text-yellow-200 hover:bg-yellow-400/10 rounded-xl border border-yellow-400/20"
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              {socraticChallenges[currentChallengeSet].map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleQuickChallenge(suggestion)}
+                  disabled={!isConnected}
+                  className={`p-5 rounded-2xl bg-slate-800/40 hover:bg-slate-700/50 text-slate-300 hover:text-white text-sm transition-all duration-200 hover:scale-[1.02] border border-slate-600/20 hover:border-slate-500/30 backdrop-blur-sm ${!isConnected ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'}`}
                 >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Previous
-                </Button>
-                <Button 
-                  onClick={nextChallengeSet} 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-yellow-300 hover:text-yellow-200 hover:bg-yellow-400/10 rounded-xl border border-yellow-400/20"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
+                  <span className="text-yellow-400 mr-2">"</span>
+                  {suggestion}
+                  <span className="text-yellow-400 ml-2">"</span>
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex justify-center gap-4">
+              <Button 
+                onClick={prevChallengeSet} 
+                variant="ghost" 
+                size="sm" 
+                className="text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-xl border border-slate-600/20"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              <Button 
+                onClick={nextChallengeSet} 
+                variant="ghost" 
+                size="sm" 
+                className="text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-xl border border-slate-600/20"
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
           </div>
         </div>
