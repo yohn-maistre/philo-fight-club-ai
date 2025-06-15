@@ -9,6 +9,7 @@ const Index = () => {
   const [selectedBattle, setSelectedBattle] = useState<string | null>(null);
 
   const availableBattles = [
+    // Classic Philosophy
     {
       id: "morality-debate",
       title: "The Morality Clash",
@@ -71,6 +72,201 @@ const Index = () => {
         }
       ],
       duration: "~18 min"
+    },
+    
+    // Contemporary & Highly Relevant
+    {
+      id: "ai-consciousness-debate",
+      title: "The Mind Machine War",
+      topic: "AI Consciousness & Human Identity",
+      description: "Can machines truly think, and what makes us uniquely human?",
+      philosophers: [
+        { 
+          name: "Alan Turing", 
+          subtitle: "The Code Breaker", 
+          quote: "Can machines think?", 
+          color: "blue" 
+        },
+        { 
+          name: "John Searle", 
+          subtitle: "The Room Keeper", 
+          quote: "Syntax is not semantics", 
+          color: "red" 
+        }
+      ],
+      duration: "~20 min"
+    },
+    {
+      id: "capitalism-debate",
+      title: "The Economic Showdown",
+      topic: "Capitalism vs Democratic Socialism",
+      description: "What economic system best serves human flourishing?",
+      philosophers: [
+        { 
+          name: "Adam Smith", 
+          subtitle: "The Invisible Hand", 
+          quote: "It is not from benevolence we expect our dinner", 
+          color: "emerald" 
+        },
+        { 
+          name: "Karl Marx", 
+          subtitle: "The Revolutionary", 
+          quote: "Workers of the world, unite!", 
+          color: "red" 
+        }
+      ],
+      duration: "~25 min"
+    },
+    {
+      id: "privacy-surveillance-debate",
+      title: "The Digital Panopticon",
+      topic: "Privacy vs Security in the Digital Age",
+      description: "How much freedom should we sacrifice for safety?",
+      philosophers: [
+        { 
+          name: "Jeremy Bentham", 
+          subtitle: "The Utilitarian", 
+          quote: "The greatest good for the greatest number", 
+          color: "blue" 
+        },
+        { 
+          name: "John Stuart Mill", 
+          subtitle: "The Libertarian", 
+          quote: "The only freedom worth the name is liberty", 
+          color: "emerald" 
+        }
+      ],
+      duration: "~16 min"
+    },
+    
+    // Provocative Modern Issues
+    {
+      id: "simulation-reality-debate",
+      title: "The Reality Glitch",
+      topic: "Are We Living in a Simulation?",
+      description: "Is our reality authentic or an elaborate digital prison?",
+      philosophers: [
+        { 
+          name: "Nick Bostrom", 
+          subtitle: "The Simulator", 
+          quote: "We are almost certainly living in a simulation", 
+          color: "purple" 
+        },
+        { 
+          name: "David Chalmers", 
+          subtitle: "The Consciousness Detective", 
+          quote: "Even simulated experiences are real experiences", 
+          color: "blue" 
+        }
+      ],
+      duration: "~14 min"
+    },
+    {
+      id: "gender-nature-debate",
+      title: "The Identity Wars",
+      topic: "Gender: Biology vs Social Construction",
+      description: "What defines gender identity in the 21st century?",
+      philosophers: [
+        { 
+          name: "Judith Butler", 
+          subtitle: "The Performance Theorist", 
+          quote: "Gender is performatively constituted", 
+          color: "purple" 
+        },
+        { 
+          name: "Camille Paglia", 
+          subtitle: "The Contrarian", 
+          quote: "Biology is not destiny, but it's reality", 
+          color: "red" 
+        }
+      ],
+      duration: "~22 min"
+    },
+    {
+      id: "climate-progress-debate",
+      title: "The Planetary Crossroads",
+      topic: "Climate Action vs Economic Growth",
+      description: "Can we save the planet without destroying prosperity?",
+      philosophers: [
+        { 
+          name: "Greta Thunberg", 
+          subtitle: "The Climate Warrior", 
+          quote: "How dare you steal my dreams!", 
+          color: "emerald" 
+        },
+        { 
+          name: "Bjørn Lomborg", 
+          subtitle: "The Skeptical Environmentalist", 
+          quote: "Smart solutions beat climate panic", 
+          color: "blue" 
+        }
+      ],
+      duration: "~19 min"
+    },
+    
+    // Wild Cards & Cultural Battles
+    {
+      id: "cancel-culture-debate",
+      title: "The Accountability Arena",
+      topic: "Cancel Culture vs Free Speech",
+      description: "Where's the line between justice and mob rule?",
+      philosophers: [
+        { 
+          name: "John Stuart Mill", 
+          subtitle: "The Free Speech Champion", 
+          quote: "The peculiar evil of silencing opinion", 
+          color: "emerald" 
+        },
+        { 
+          name: "Herbert Marcuse", 
+          subtitle: "The Critical Theorist", 
+          quote: "Repressive tolerance enables oppression", 
+          color: "red" 
+        }
+      ],
+      duration: "~17 min"
+    },
+    {
+      id: "social-media-humanity-debate",
+      title: "The Connection Paradox",
+      topic: "Digital Connection vs Human Isolation",
+      description: "Are we more connected or more alone than ever?",
+      philosophers: [
+        { 
+          name: "Sherry Turkle", 
+          subtitle: "The Digital Skeptic", 
+          quote: "We're alone together", 
+          color: "blue" 
+        },
+        { 
+          name: "Clay Shirky", 
+          subtitle: "The Network Optimist", 
+          quote: "The internet is the largest experiment in anarchy", 
+          color: "purple" 
+        }
+      ],
+      duration: "~13 min"
+    },
+    {
+      id: "death-meaning-debate",
+      title: "The Mortality Question",
+      topic: "Does Death Give Life Meaning?",
+      description: "Would immortality make existence meaningless or perfect?",
+      philosophers: [
+        { 
+          name: "Martin Heidegger", 
+          subtitle: "The Being Detective", 
+          quote: "Being-toward-death gives life authenticity", 
+          color: "red" 
+        },
+        { 
+          name: "Epicurus", 
+          subtitle: "The Pleasure Seeker", 
+          quote: "Death is nothing to us", 
+          color: "emerald" 
+        }
+      ],
+      duration: "~21 min"
     }
   ];
 
@@ -99,7 +295,7 @@ const Index = () => {
   if (currentView === 'battles') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="py-12 px-4 max-w-6xl mx-auto">
+        <div className="py-12 px-4 max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <button 
               onClick={handleBackToLanding}
@@ -107,11 +303,12 @@ const Index = () => {
             >
               ← Back to Home
             </button>
-            <h1 className="text-4xl font-bold text-white mb-4 font-serif">Choose Your Battle</h1>
-            <p className="text-slate-300 text-lg">Select a philosophical debate to join as Socratic challenger</p>
+            <h1 className="text-4xl font-bold text-white mb-4 font-serif">Choose Your Philosophical Battle</h1>
+            <p className="text-slate-300 text-lg mb-2">Select a debate to join as Socratic challenger</p>
+            <p className="text-slate-400 text-sm">From timeless philosophy to today's most contentious issues</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {availableBattles.map((battle) => (
               <BattleCard
                 key={battle.id}
