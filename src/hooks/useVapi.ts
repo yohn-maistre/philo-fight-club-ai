@@ -33,6 +33,14 @@ export const useVapi = (options: UseVapiOptions = {}) => {
   const connect = useCallback(async (assistantId: string) => {
     if (isConnected || isLoading) return;
 
+    // Check if public key is configured
+    if (!publicKey || publicKey === "YOUR_VAPI_PUBLIC_KEY") {
+      const errorMsg = "Vapi Public Key not configured. Please add your key to src/hooks/useVapi.ts";
+      setError(errorMsg);
+      options.onError?.(new Error(errorMsg));
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -92,9 +100,8 @@ export const useVapi = (options: UseVapiOptions = {}) => {
       });
 
       // Start the call with the assistant (backend will handle squad logic)
-      await vapi.start({
-        assistantId: assistantId
-      });
+      // Use the correct Vapi SDK method
+      await vapi.start(assistantId);
       setVapiInstance(vapi);
 
     } catch (err) {

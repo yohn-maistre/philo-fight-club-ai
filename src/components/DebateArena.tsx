@@ -1,9 +1,11 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, Mic, MicOff, Clock, Target, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 import { useVapi } from "@/hooks/useVapi";
+import { useToast } from "@/hooks/use-toast";
 
 interface DebateArenaProps {
   debateId: string;
@@ -14,7 +16,7 @@ interface DebateArenaProps {
 const absurdExpressions = ["adjusting his toga dramatically", "counting invisible sheep", "practicing air guitar solos", "doing tiny desk push-ups", "organizing his beard hair by length", "sketching doodles of cats", "humming show tunes quietly", "tapping morse code with his fingers", "doing interpretive dance moves", "practicing magic tricks", "folding origami cranes", "shadow boxing with wisdom", "playing invisible chess", "conducting an invisible orchestra", "doing breathing exercises", "stretching like a cat", "swinging his feet while listening", "sitting grumpily with arms crossed", "twirling his mustache thoughtfully", "cleaning his fingernails", "stacking imaginary blocks", "doing neck rolls", "practicing facial expressions in a mirror", "knitting an invisible scarf"];
 
 export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
-  const [currentSpeaker, setCurrentSpeaker] = useState<'philosopher1' | 'philosopher2' | 'user'>('philosopher1');
+  const [currentSpeaker, setCurrentSpeaker] = useState<'philosopher1' | 'philosopher2' | 'moderator' | 'user'>('moderator');
   const [challengeCount, setChallengeCount] = useState(0);
   const [debateTime, setDebateTime] = useState(0);
   const [currentStatement, setCurrentStatement] = useState("");
@@ -24,12 +26,17 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const [transcript, setTranscript] = useState<string[]>([]);
   const [isTranscriptExpanded, setIsTranscriptExpanded] = useState(false);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   // Vapi integration with improved message handling
-  const { isConnected, isLoading, connect, disconnect, sendMessage } = useVapi({
+  const { isConnected, isLoading, error, connect, disconnect, sendMessage } = useVapi({
     onConnect: () => {
       console.log('Connected to Vapi');
       setTranscript(prev => [...prev, 'System: Connected to voice debate']);
+      toast({
+        title: "Connected",
+        description: "Voice debate connection established",
+      });
     },
     onDisconnect: () => {
       console.log('Disconnected from Vapi');
@@ -45,16 +52,21 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     onError: (error) => {
       console.error('Vapi error:', error);
       setTranscript(prev => [...prev, `System: Error - ${error.message || 'Connection failed'}`]);
+      toast({
+        title: "Connection Error",
+        description: error.message || "Failed to connect to voice debate",
+        variant: "destructive",
+      });
     }
   });
 
-  // Get debate config based on ID - with proper assistant IDs for backend squad management
+  // Get debate config based on ID
   const getDebateConfig = (id: string) => {
     const configs = {
       "morality-debate": {
         title: "The Morality Clash",
         topic: "Is morality objective or subjective?",
-        assistantId: "YOUR_MORALITY_ASSISTANT_ID", // This will route to the proper squad on backend
+        assistantId: "YOUR_MORALITY_ASSISTANT_ID", // Replace with your actual assistant ID
         philosophers: [{
           name: "Socrates",
           color: "emerald",
@@ -64,15 +76,21 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
           color: "red",
           subtitle: "The Hammer"
         }],
+        moderator: {
+          name: "Aristotle",
+          color: "blue",
+          subtitle: "The Moderator"
+        },
         statements: {
           philosopher1: ["Before we can discuss whether morality is objective, shouldn't we first examine what we mean by 'morality' itself? For how can we—", "You speak of strength and weakness, but I confess I do not understand these terms. What makes one soul stronger than another? Is it not possible that—", "Perhaps you are right, but I wonder... if there are no universal moral truths, then how can we say that creating one's own values is better than accepting traditional ones? For to say it is 'better' seems to imply—"],
-          philosopher2: ["Your precious 'objective morality' is nothing but the bleating of weak souls who lack the courage to create their own values! The Übermensch transcends such slave morality and—", "What you call 'good' and 'evil' are merely human constructions, created by those too cowardly to embrace their own power! True strength lies in—", "The masses cling to their moral absolutes because they fear the terrifying freedom of creating meaning for themselves! But the strong individual—"]
+          philosopher2: ["Your precious 'objective morality' is nothing but the bleating of weak souls who lack the courage to create their own values! The Übermensch transcends such slave morality and—", "What you call 'good' and 'evil' are merely human constructions, created by those too cowardly to embrace their own power! True strength lies in—", "The masses cling to their moral absolutes because they fear the terrifying freedom of creating meaning for themselves! But the strong individual—"],
+          moderator: ["Welcome to today's philosophical debate on the nature of morality. Let us begin by establishing our fundamental positions...", "An interesting point has been raised. Let us explore this further before moving to our next consideration...", "I believe we should now turn our attention to the implications of what has been discussed..."]
         }
       },
       "free-will-debate": {
         title: "The Freedom Fight",
         topic: "Do we have free will or are we determined?",
-        assistantId: "YOUR_FREEWILL_ASSISTANT_ID", // This will route to the proper squad on backend
+        assistantId: "YOUR_FREEWILL_ASSISTANT_ID", // Replace with your actual assistant ID
         philosophers: [{
           name: "Descartes",
           color: "blue",
@@ -82,9 +100,15 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
           color: "purple",
           subtitle: "The Determinist"
         }],
+        moderator: {
+          name: "Kant",
+          color: "amber",
+          subtitle: "The Synthesizer"
+        },
         statements: {
           philosopher1: ["I think, therefore I am - and in this thinking, I discover my freedom to doubt, to affirm, to deny. The mind is distinct from matter and—", "But surely you must see that the very act of reasoning demonstrates our freedom? When I choose to doubt or to believe, this choice itself—", "The will is infinite in scope, though the understanding is finite. This is why error occurs - when the will extends beyond what the understanding—"],
-          philosopher2: ["All things are determined by the necessity of divine nature to exist and operate in a certain way. What you call 'free will' is merely—", "Men believe themselves free because they are conscious of their desires but ignorant of the causes that determine them. Every action follows—", "The mind's power is defined by its power of action. When we understand the causes that determine us, we achieve a higher form of freedom through—"]
+          philosopher2: ["All things are determined by the necessity of divine nature to exist and operate in a certain way. What you call 'free will' is merely—", "Men believe themselves free because they are conscious of their desires but ignorant of the causes that determine them. Every action follows—", "The mind's power is defined by its power of action. When we understand the causes that determine us, we achieve a higher form of freedom through—"],
+          moderator: ["Today we examine the fundamental question of human agency and determination...", "Let us carefully consider the implications of these opposing viewpoints...", "Perhaps we might find a synthesis between these seemingly contradictory positions..."]
         }
       }
     };
@@ -101,6 +125,9 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
         const randomExpression = absurdExpressions[Math.floor(Math.random() * absurdExpressions.length)];
         newExpressions[philosopher.name] = randomExpression;
       });
+      // Add moderator expression
+      const randomExpression = absurdExpressions[Math.floor(Math.random() * absurdExpressions.length)];
+      newExpressions[debateConfig.moderator.name] = randomExpression;
       setPhilosopherExpressions(newExpressions);
     };
 
@@ -127,18 +154,25 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     }
   }, [currentSpeaker, debateConfig]);
 
-  // Initialize Vapi connection with assistant ID (backend handles squad routing)
+  // Initialize Vapi connection with assistant ID
   useEffect(() => {
     const assistantId = debateConfig.assistantId;
     
     if (assistantId && assistantId !== "YOUR_MORALITY_ASSISTANT_ID" && assistantId !== "YOUR_FREEWILL_ASSISTANT_ID") {
       connect(assistantId);
+    } else if (error) {
+      // Show error if API key is not configured
+      toast({
+        title: "Setup Required",
+        description: "Please configure your Vapi Public Key and Assistant ID",
+        variant: "destructive",
+      });
     }
 
     return () => {
       disconnect();
     };
-  }, [connect, disconnect, debateConfig]);
+  }, [connect, disconnect, debateConfig, error, toast]);
 
   // Auto-scroll transcript to bottom
   useEffect(() => {
@@ -172,7 +206,15 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     setCurrentChallengeSet(prev => (prev - 1 + socraticChallenges.length) % socraticChallenges.length);
   };
 
-  const activePhilosopher = currentSpeaker === 'philosopher1' ? debateConfig.philosophers[0] : debateConfig.philosophers[1];
+  // Get active participant info
+  const getActiveParticipant = () => {
+    if (currentSpeaker === 'philosopher1') return debateConfig.philosophers[0];
+    if (currentSpeaker === 'philosopher2') return debateConfig.philosophers[1];
+    if (currentSpeaker === 'moderator') return debateConfig.moderator;
+    return null;
+  };
+
+  const activeParticipant = getActiveParticipant();
 
   // Extended Socratic challenge suggestions
   const socraticChallenges = [
@@ -218,41 +260,71 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             <p className="text-slate-300 text-lg">"{debateConfig.topic}"</p>
           </div>
 
-          {/* Speakers Overview */}
+          {/* Participants Overview with Moderator in Center */}
           <div className="mb-8">
             <h3 className="text-lg font-bold text-white mb-4 text-center">Debate Participants</h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              {debateConfig.philosophers.map((philosopher, index) => {
-                const isActive = currentSpeaker === 'philosopher1' && index === 0 || currentSpeaker === 'philosopher2' && index === 1;
-                return (
-                  <div key={philosopher.name} className={`bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border transition-all duration-300 ${isActive ? 'border-blue-500/50 shadow-lg shadow-blue-500/10' : 'border-slate-700/30'}`}>
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">
-                        {philosopher.color === 'emerald' && '💭'}
-                        {philosopher.color === 'red' && '🔥'}
-                        {philosopher.color === 'blue' && '🧠'}
-                        {philosopher.color === 'purple' && '⚡'}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-white">{philosopher.name}</h4>
-                          {isActive && (
-                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                              SPEAKING
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-slate-400 text-sm mb-2">{philosopher.subtitle}</p>
-                        {!isActive && (
-                          <p className="text-slate-300 text-xs italic">
-                            {philosopherExpressions[philosopher.name] || "pondering existence"}
-                          </p>
+            
+            {/* Triangular Layout: Moderator at top, philosophers below */}
+            <div className="flex flex-col items-center gap-6">
+              {/* Moderator at top center */}
+              <div className="w-full max-w-md">
+                <div className={`bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border transition-all duration-300 ${currentSpeaker === 'moderator' ? 'border-blue-500/50 shadow-lg shadow-blue-500/10' : 'border-slate-700/30'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">⚖️</div>
+                    <div className="flex-1">
+                      <div className={`flex items-center gap-2 ${currentSpeaker === 'moderator' ? 'justify-center' : ''}`}>
+                        <h4 className="font-bold text-white">{debateConfig.moderator.name}</h4>
+                        {currentSpeaker === 'moderator' && (
+                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
+                            MODERATING
+                          </Badge>
                         )}
                       </div>
+                      <p className={`text-slate-400 text-sm mb-2 ${currentSpeaker === 'moderator' ? 'text-center' : ''}`}>{debateConfig.moderator.subtitle}</p>
+                      {currentSpeaker !== 'moderator' && (
+                        <p className="text-slate-300 text-xs italic">
+                          {philosopherExpressions[debateConfig.moderator.name] || "maintaining order"}
+                        </p>
+                      )}
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              </div>
+
+              {/* Philosophers below in a row */}
+              <div className="grid md:grid-cols-2 gap-4 w-full">
+                {debateConfig.philosophers.map((philosopher, index) => {
+                  const isActive = currentSpeaker === 'philosopher1' && index === 0 || currentSpeaker === 'philosopher2' && index === 1;
+                  return (
+                    <div key={philosopher.name} className={`bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border transition-all duration-300 ${isActive ? 'border-blue-500/50 shadow-lg shadow-blue-500/10' : 'border-slate-700/30'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl">
+                          {philosopher.color === 'emerald' && '💭'}
+                          {philosopher.color === 'red' && '🔥'}
+                          {philosopher.color === 'blue' && '🧠'}
+                          {philosopher.color === 'purple' && '⚡'}
+                        </div>
+                        <div className="flex-1">
+                          <div className={`flex items-center gap-2 ${isActive ? 'justify-center' : ''}`}>
+                            <h4 className="font-bold text-white">{philosopher.name}</h4>
+                            {isActive && (
+                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
+                                SPEAKING
+                              </Badge>
+                            )}
+                          </div>
+                          <p className={`text-slate-400 text-sm mb-2 ${isActive ? 'text-center' : ''}`}>{philosopher.subtitle}</p>
+                          {!isActive && (
+                            <p className="text-slate-300 text-xs italic">
+                              {philosopherExpressions[philosopher.name] || "pondering existence"}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -261,17 +333,19 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
             <div className="text-center mb-6">
               <div className="flex items-center justify-center gap-3 mb-2">
                 <div className="text-3xl">
-                  {activePhilosopher.color === 'emerald' && '💭'}
-                  {activePhilosopher.color === 'red' && '🔥'}
-                  {activePhilosopher.color === 'blue' && '🧠'}
-                  {activePhilosopher.color === 'purple' && '⚡'}
+                  {activeParticipant?.color === 'emerald' && '💭'}
+                  {activeParticipant?.color === 'red' && '🔥'}
+                  {activeParticipant?.color === 'blue' && '🧠'}
+                  {activeParticipant?.color === 'purple' && '⚡'}
+                  {activeParticipant?.color === 'amber' && '⚖️'}
+                  {currentSpeaker === 'moderator' && '⚖️'}
                 </div>
                 <h2 className="text-2xl font-bold text-white font-serif">
-                  {activePhilosopher.name.toUpperCase()}
+                  {activeParticipant?.name.toUpperCase() || 'MODERATOR'}
                 </h2>
               </div>
               <Badge variant="secondary" className="bg-slate-700 text-slate-300">
-                {activePhilosopher.subtitle}
+                {activeParticipant?.subtitle || 'The Moderator'}
               </Badge>
             </div>
             
@@ -318,11 +392,13 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
                 </div>
               </Button>
               <p className="text-slate-400 text-sm mt-3">
-                {!isConnected 
-                  ? 'Connecting to voice debate...' 
-                  : isUserMuted 
-                    ? 'Click to join the debate with your voice' 
-                    : 'You can now speak directly to the philosophers'
+                {error 
+                  ? 'Setup required: Configure your Vapi Public Key and Assistant ID' 
+                  : !isConnected 
+                    ? 'Connecting to voice debate...' 
+                    : isUserMuted 
+                      ? 'Click to join the debate with your voice' 
+                      : 'You can now speak directly to the philosophers'
                 }
               </p>
             </div>
