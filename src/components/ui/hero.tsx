@@ -89,10 +89,7 @@ const Hero = React.forwardRef<HTMLElement, HeroProps>(
                 backgroundImage: `conic-gradient(var(--conic-position), var(--tw-gradient-stops))`,
               }}
               className="absolute inset-auto right-1/2 h-56 overflow-visible w-[30rem] bg-gradient-conic from-yellow-400/60 via-transparent to-transparent [--conic-position:from_70deg_at_center_top]"
-            >
-              <div className="absolute w-[100%] left-0 bg-transparent h-40 bottom-0 z-20" />
-              <div className="absolute w-40 h-[100%] left-0 bg-transparent bottom-0 z-20" />
-            </motion.div>
+            />
 
             {/* Right gradient cone */}
             <motion.div
@@ -107,10 +104,7 @@ const Hero = React.forwardRef<HTMLElement, HeroProps>(
                 backgroundImage: `conic-gradient(var(--conic-position), var(--tw-gradient-stops))`,
               }}
               className="absolute inset-auto left-1/2 h-56 w-[30rem] bg-gradient-conic from-transparent via-transparent to-yellow-400/60 [--conic-position:from_290deg_at_center_top]"
-            >
-              <div className="absolute w-40 h-[100%] right-0 bg-transparent bottom-0 z-20" />
-              <div className="absolute w-[100%] right-0 bg-transparent h-40 bottom-0 z-20" />
-            </motion.div>
+            />
           </div>
         )}
 

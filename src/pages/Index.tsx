@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
 import { BattleCard } from "@/components/BattleCard";
@@ -326,8 +327,8 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <HeroSection onEnterArena={handleEnterArena} />
       
-      {/* Philosophy Fight Club Marquee - moved up to sit directly after hero */}
-      <div className="py-6 border-t border-b border-slate-700/50 -mt-8">
+      {/* Philosophy Fight Club Marquee - positioned closer to hero */}
+      <div className="py-6 border-t border-b border-slate-700/50 -mt-16">
         <MarqueeAnimation
           direction="left"
           baseVelocity={-2}
