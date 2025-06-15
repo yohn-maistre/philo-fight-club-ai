@@ -1,10 +1,8 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Mic, MicOff, Clock, Target } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowLeft, Mic, MicOff, Clock, Target, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 import { useVapi } from "@/hooks/useVapi";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,74 +11,23 @@ interface DebateArenaProps {
   onBack: () => void;
 }
 
-// Animation states for each speaker type
-const speakerStates = [
-  {
-    // Moderator
-    bgColor: "#1e293b", // slate-800
-    accentColor: "#f59e0b", // amber-500
-    textColor: "#f8fafc", // slate-50
-    emoji: "🎭",
-    name: "MODERATOR",
-    subtitle: "The Great Questioner"
-  },
-  {
-    // Philosopher 1 (Socrates)
-    bgColor: "#064e3b", // emerald-900
-    accentColor: "#10b981", // emerald-500
-    textColor: "#f0fdf4", // green-50
-    emoji: "💭",
-    name: "SOCRATES",
-    subtitle: "The Questioner"
-  },
-  {
-    // Philosopher 2 (Nietzsche)
-    bgColor: "#7f1d1d", // red-900
-    accentColor: "#ef4444", // red-500
-    textColor: "#fef2f2", // red-50
-    emoji: "🔥",
-    name: "NIETZSCHE",
-    subtitle: "The Hammer"
-  }
-];
-
-const PhilosopherAvatar = ({ emoji, isActive }: { emoji: string; isActive: boolean }) => (
-  <motion.div
-    className="flex items-center justify-center text-6xl"
-    animate={{
-      scale: isActive ? 1.2 : 0.8,
-      opacity: isActive ? 1 : 0.6,
-    }}
-    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-  >
-    {emoji}
-  </motion.div>
-);
+// Move expressions outside component to prevent recreation on every render
+const absurdExpressions = ["adjusting his toga dramatically", "counting invisible sheep", "practicing air guitar solos", "doing tiny desk push-ups", "organizing his beard hair by length", "sketching doodles of cats", "humming show tunes quietly", "tapping morse code with his fingers", "doing interpretive dance moves", "practicing magic tricks", "folding origami cranes", "shadow boxing with wisdom", "playing invisible chess", "conducting an invisible orchestra", "doing breathing exercises", "stretching like a cat", "swinging his feet while listening", "sitting grumpily with arms crossed", "twirling his mustache thoughtfully", "cleaning his fingernails", "stacking imaginary blocks", "doing neck rolls", "practicing facial expressions in a mirror", "knitting an invisible scarf"];
 
 export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
-  const [currentSpeaker, setCurrentSpeaker] = useState<'moderator' | 'philosopher1' | 'philosopher2'>('moderator');
+  const [currentSpeaker, setCurrentSpeaker] = useState<'philosopher1' | 'philosopher2' | 'moderator' | 'user'>('moderator');
   const [challengeCount, setChallengeCount] = useState(0);
   const [debateTime, setDebateTime] = useState(0);
   const [currentStatement, setCurrentStatement] = useState("");
+  const [philosopherExpressions, setPhilosopherExpressions] = useState<{[key: string]: string}>({});
+  const [currentChallengeSet, setCurrentChallengeSet] = useState(0);
   const [isUserMuted, setIsUserMuted] = useState(true);
   const [transcript, setTranscript] = useState<string[]>([]);
+  const [isTranscriptExpanded, setIsTranscriptExpanded] = useState(false);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Get current speaker index for animation state
-  const getCurrentSpeakerIndex = () => {
-    switch (currentSpeaker) {
-      case 'moderator': return 0;
-      case 'philosopher1': return 1;
-      case 'philosopher2': return 2;
-      default: return 0;
-    }
-  };
-
-  const currentState = speakerStates[getCurrentSpeakerIndex()];
-  const transition = { type: "spring", stiffness: 300, damping: 30 };
-
-  // Vapi integration
+  // Vapi integration with improved message handling
   const { isConnected, isLoading, error, connect, disconnect, sendMessage } = useVapi({
     onConnect: () => {
       console.log('Connected to Vapi');
@@ -97,16 +44,8 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     onMessage: (message) => {
       console.log('Received message from Vapi:', message);
       if (message.transcript) {
-        const speaker = message.transcript.speaker === 'user' ? 'You' : getCurrentSpeakerName();
+        const speaker = message.transcript.speaker === 'user' ? 'You' : 'AI Philosopher';
         setTranscript(prev => [...prev, `${speaker}: ${message.transcript!.transcript}`]);
-        
-        // Cycle through speakers
-        if (message.transcript.speaker !== 'user') {
-          const speakers: ('moderator' | 'philosopher1' | 'philosopher2')[] = ['moderator', 'philosopher1', 'philosopher2'];
-          const currentIndex = speakers.indexOf(currentSpeaker);
-          const nextSpeaker = speakers[(currentIndex + 1) % speakers.length];
-          setCurrentSpeaker(nextSpeaker);
-        }
       }
     },
     onError: (error) => {
@@ -120,17 +59,55 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     }
   });
 
-  // Get debate config
+  // Get debate config based on ID
   const getDebateConfig = (id: string) => {
     const configs = {
       "morality-debate": {
         title: "The Morality Clash",
         topic: "Is morality objective or subjective?",
         assistantId: "YOUR_MORALITY_ASSISTANT_ID",
+        philosophers: [{
+          name: "Socrates",
+          color: "emerald",
+          subtitle: "The Questioner"
+        }, {
+          name: "Nietzsche",
+          color: "red",
+          subtitle: "The Hammer"
+        }],
+        moderator: {
+          name: "Aristotle",
+          color: "blue",
+          subtitle: "The Moderator"
+        },
         statements: {
-          moderator: ["Welcome to today's philosophical debate on the nature of morality. Let us begin by establishing our fundamental positions...", "An interesting point has been raised. Let us explore this further before moving to our next consideration...", "I believe we should now turn our attention to the implications of what has been discussed..."],
-          philosopher1: ["Before we can discuss whether morality is objective, shouldn't we first examine what we mean by 'morality' itself?", "You speak of strength and weakness, but I confess I do not understand these terms.", "Perhaps you are right, but I wonder... if there are no universal moral truths, then how can we say that creating one's own values is better?"],
-          philosopher2: ["Your precious 'objective morality' is nothing but the bleating of weak souls who lack the courage to create their own values!", "What you call 'good' and 'evil' are merely human constructions, created by those too cowardly to embrace their own power!", "The masses cling to their moral absolutes because they fear the terrifying freedom of creating meaning for themselves!"]
+          philosopher1: ["Before we can discuss whether morality is objective, shouldn't we first examine what we mean by 'morality' itself? For how can we—", "You speak of strength and weakness, but I confess I do not understand these terms. What makes one soul stronger than another? Is it not possible that—", "Perhaps you are right, but I wonder... if there are no universal moral truths, then how can we say that creating one's own values is better than accepting traditional ones? For to say it is 'better' seems to imply—"],
+          philosopher2: ["Your precious 'objective morality' is nothing but the bleating of weak souls who lack the courage to create their own values! The Übermensch transcends such slave morality and—", "What you call 'good' and 'evil' are merely human constructions, created by those too cowardly to embrace their own power! True strength lies in—", "The masses cling to their moral absolutes because they fear the terrifying freedom of creating meaning for themselves! But the strong individual—"],
+          moderator: ["Welcome to today's philosophical debate on the nature of morality. Let us begin by establishing our fundamental positions...", "An interesting point has been raised. Let us explore this further before moving to our next consideration...", "I believe we should now turn our attention to the implications of what has been discussed..."]
+        }
+      },
+      "free-will-debate": {
+        title: "The Freedom Fight",
+        topic: "Do we have free will or are we determined?",
+        assistantId: "YOUR_FREEWILL_ASSISTANT_ID",
+        philosophers: [{
+          name: "Descartes",
+          color: "blue",
+          subtitle: "The Dualist"
+        }, {
+          name: "Spinoza",
+          color: "purple",
+          subtitle: "The Determinist"
+        }],
+        moderator: {
+          name: "Kant",
+          color: "amber",
+          subtitle: "The Synthesizer"
+        },
+        statements: {
+          philosopher1: ["I think, therefore I am - and in this thinking, I discover my freedom to doubt, to affirm, to deny. The mind is distinct from matter and—", "But surely you must see that the very act of reasoning demonstrates our freedom? When I choose to doubt or to believe, this choice itself—", "The will is infinite in scope, though the understanding is finite. This is why error occurs - when the will extends beyond what the understanding—"],
+          philosopher2: ["All things are determined by the necessity of divine nature to exist and operate in a certain way. What you call 'free will' is merely—", "Men believe themselves free because they are conscious of their desires but ignorant of the causes that determine them. Every action follows—", "The mind's power is defined by its power of action. When we understand the causes that determine us, we achieve a higher form of freedom through—"],
+          moderator: ["Today we examine the fundamental question of human agency and determination...", "Let us carefully consider the implications of these opposing viewpoints...", "Perhaps we might find a synthesis between these seemingly contradictory positions..."]
         }
       }
     };
@@ -139,13 +116,27 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
 
   const debateConfig = getDebateConfig(debateId);
 
-  const getCurrentSpeakerName = () => {
-    if (currentSpeaker === 'philosopher1') return 'Socrates';
-    if (currentSpeaker === 'philosopher2') return 'Nietzsche';
-    return 'Moderator';
-  };
+  // Update expressions every 3-5 seconds
+  useEffect(() => {
+    const updateExpressions = () => {
+      const newExpressions: {[key: string]: string} = {};
+      debateConfig.philosophers.forEach(philosopher => {
+        const randomExpression = absurdExpressions[Math.floor(Math.random() * absurdExpressions.length)];
+        newExpressions[philosopher.name] = randomExpression;
+      });
+      const randomExpression = absurdExpressions[Math.floor(Math.random() * absurdExpressions.length)];
+      newExpressions[debateConfig.moderator.name] = randomExpression;
+      setPhilosopherExpressions(newExpressions);
+    };
 
-  // Timer effect
+    updateExpressions();
+    const interval = setInterval(() => {
+      updateExpressions();
+    }, Math.random() * 2000 + 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setDebateTime(prev => prev + 1);
@@ -153,19 +144,19 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Update statement when speaker changes
   useEffect(() => {
-    const statements = debateConfig.statements[currentSpeaker];
+    const speaker = currentSpeaker;
+    const statements = debateConfig.statements[speaker];
     if (statements) {
       setCurrentStatement(statements[Math.floor(Math.random() * statements.length)]);
     }
   }, [currentSpeaker, debateConfig]);
 
-  // Initialize Vapi connection
+  // Initialize Vapi connection with assistant ID
   useEffect(() => {
     const assistantId = debateConfig.assistantId;
     
-    if (assistantId && assistantId !== "YOUR_MORALITY_ASSISTANT_ID") {
+    if (assistantId && assistantId !== "YOUR_MORALITY_ASSISTANT_ID" && assistantId !== "YOUR_FREEWILL_ASSISTANT_ID") {
       connect(assistantId);
     } else if (error) {
       toast({
@@ -180,7 +171,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     };
   }, [connect, disconnect, debateConfig, error, toast]);
 
-  // Auto-scroll transcript
+  // Auto-scroll transcript to bottom
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcript]);
@@ -202,286 +193,337 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     setChallengeCount(prev => prev + 1);
     setTranscript(prev => [...prev, `You: ${challenge}`]);
     sendMessage(challenge);
-    
-    // Cycle to next speaker after challenge
-    const speakers: ('moderator' | 'philosopher1' | 'philosopher2')[] = ['moderator', 'philosopher1', 'philosopher2'];
-    const currentIndex = speakers.indexOf(currentSpeaker);
-    const nextSpeaker = speakers[(currentIndex + 1) % speakers.length];
-    setCurrentSpeaker(nextSpeaker);
   };
 
-  const quickChallenges = [
-    "But what do you mean by that?",
-    "Can you give a concrete example?", 
-    "What if someone disagreed?",
-    "How do you know that's true?"
+  const nextChallengeSet = () => {
+    setCurrentChallengeSet(prev => (prev + 1) % socraticChallenges.length);
+  };
+
+  const prevChallengeSet = () => {
+    setCurrentChallengeSet(prev => (prev - 1 + socraticChallenges.length) % socraticChallenges.length);
+  };
+
+  // Get active participant info
+  const getActiveParticipant = () => {
+    if (currentSpeaker === 'philosopher1') return debateConfig.philosophers[0];
+    if (currentSpeaker === 'philosopher2') return debateConfig.philosophers[1];
+    if (currentSpeaker === 'moderator') return debateConfig.moderator;
+    return null;
+  };
+
+  const activeParticipant = getActiveParticipant();
+
+  // Extended Socratic challenge suggestions
+  const socraticChallenges = [
+    ["But what do you mean by that?", "Can you give a concrete example?", "What if someone disagreed?", "How do you know that's true?"],
+    ["What assumptions are you making?", "Could there be another explanation?", "What evidence supports this?", "How would you respond to critics?"],
+    ["What are the implications of that?", "Is this always the case?", "What would happen if everyone believed this?", "How do you define that term?"],
+    ["What's the strongest argument against your view?", "Where does this logic lead us?", "Can you think of any exceptions?", "Why should we accept this premise?"],
+    ["What would your opponents say?", "How did you reach that conclusion?", "What if the opposite were true?", "What's your best evidence for this?"]
   ];
 
   return (
-    <motion.div
-      className="min-h-screen flex flex-col overflow-hidden"
-      animate={{ backgroundColor: currentState.bgColor }}
-      transition={transition}
-    >
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-white/10 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onBack} className="text-white/80 hover:text-white p-2">
+      <div className="px-6 py-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <Button variant="ghost" onClick={onBack} className="text-slate-300 hover:text-white">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
           
-          <div className="text-center flex-1 px-2">
-            <motion.h1 
-              className="text-lg font-bold font-serif"
-              animate={{ color: currentState.textColor }}
-              transition={transition}
-            >
-              The Morality Clash
-            </motion.h1>
-            <motion.p 
-              className="text-sm opacity-80"
-              animate={{ color: currentState.textColor }}
-              transition={transition}
-            >
-              "Is morality objective or subjective?"
-            </motion.p>
-          </div>
-          
-          <div className="flex items-center gap-3 text-sm">
-            <div className="flex items-center gap-1 text-white/80">
-              <Clock className="h-3 w-3" />
+          <div className="flex items-center gap-4 text-slate-400">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
               <span>{formatTime(debateTime)}</span>
             </div>
-            <div className="flex items-center gap-1 text-white/80">
-              <Target className="h-3 w-3" />
-              <span>{challengeCount}</span>
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              <span>{challengeCount} challenges</span>
             </div>
-            <Badge className={`${isConnected ? 'bg-green-500/20 text-green-300' : isLoading ? 'bg-yellow-500/20 text-yellow-300' : 'bg-red-500/20 text-red-300'} text-xs`}>
-              {isConnected ? '🟢' : isLoading ? '🟡' : '🔴'}
+            <Badge className={`${isConnected ? 'bg-green-500 hover:bg-green-600' : isLoading ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-red-500 hover:bg-red-600'} text-white animate-pulse`}>
+              {isConnected ? '🟢 CONNECTED' : isLoading ? '🟡 CONNECTING' : '🔴 DISCONNECTED'}
             </Badge>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-2xl">
-          {/* Current Speaker Display */}
-          <motion.div
-            className="text-center mb-8"
-            animate={{ color: currentState.textColor }}
-            transition={transition}
-          >
-            <motion.h2
-              className="text-2xl font-bold mb-2 font-serif"
-              animate={{ color: currentState.accentColor }}
-              transition={transition}
-            >
-              {currentState.name}
-            </motion.h2>
-            <motion.p
-              className="text-sm opacity-80 mb-6"
-              animate={{ color: currentState.textColor }}
-              transition={transition}
-            >
-              {currentState.subtitle}
-            </motion.p>
-          </motion.div>
-
-          {/* Philosopher Avatars Row */}
-          <div className="flex items-center justify-center gap-12 mb-8">
-            {speakerStates.map((state, index) => (
-              <div key={index} className="flex flex-col items-center">
-                <PhilosopherAvatar 
-                  emoji={state.emoji} 
-                  isActive={getCurrentSpeakerIndex() === index} 
-                />
-                <motion.div
-                  className="mt-2 text-xs font-medium text-center"
-                  animate={{ 
-                    color: getCurrentSpeakerIndex() === index ? currentState.accentColor : currentState.textColor,
-                    opacity: getCurrentSpeakerIndex() === index ? 1 : 0.6 
-                  }}
-                  transition={transition}
-                >
-                  {state.name}
-                </motion.div>
-              </div>
-            ))}
+      <div className="px-6 pb-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Debate Title */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2 font-serif">{debateConfig.title}</h1>
+            <p className="text-slate-300 text-lg">"{debateConfig.topic}"</p>
           </div>
 
-          {/* Current Statement */}
-          <motion.div
-            className="text-center mb-8 p-6 rounded-xl border border-white/10 backdrop-blur-sm"
-            animate={{ 
-              backgroundColor: `${currentState.accentColor}15`,
-              borderColor: `${currentState.accentColor}30`
-            }}
-            transition={transition}
-          >
-            <motion.p
-              className="text-lg italic leading-relaxed"
-              animate={{ color: currentState.textColor }}
-              transition={transition}
-            >
-              "{currentStatement}"
-            </motion.p>
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <motion.div 
-                className="w-2 h-2 rounded-full animate-pulse"
-                animate={{ backgroundColor: currentState.accentColor }}
-                transition={transition}
-              />
-              <motion.span 
-                className="text-sm"
-                animate={{ color: currentState.textColor }}
-                transition={transition}
-              >
-                Speaking...
-              </motion.span>
-            </div>
-          </motion.div>
+          {/* Participants Overview with Improved Styling */}
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-white mb-6 text-center">Debate Participants</h3>
+            
+            {/* Enhanced Triangular Layout */}
+            <div className="flex flex-col items-center gap-8">
+              {/* Moderator at top center - Enhanced Design */}
+              <div className="w-full max-w-lg">
+                <div className={`bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm rounded-3xl p-6 border-2 transition-all duration-500 shadow-xl ${
+                  currentSpeaker === 'moderator' 
+                    ? 'border-amber-400/60 shadow-amber-500/20 ring-4 ring-amber-400/20 scale-105' 
+                    : 'border-slate-600/40 hover:border-slate-500/50'
+                }`}>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="text-4xl mb-3">⚖️</div>
+                    <div className="space-y-2">
+                      <h4 className="font-bold text-white text-xl font-serif">{debateConfig.moderator.name}</h4>
+                      <Badge className={`${
+                        currentSpeaker === 'moderator' 
+                          ? 'bg-amber-500/30 text-amber-200 border-amber-400/50' 
+                          : 'bg-slate-600/30 text-slate-300 border-slate-500/30'
+                      } text-sm px-3 py-1`}>
+                        {debateConfig.moderator.subtitle}
+                      </Badge>
+                      {currentSpeaker === 'moderator' && (
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs animate-pulse">
+                          MODERATING
+                        </Badge>
+                      )}
+                      {currentSpeaker !== 'moderator' && (
+                        <p className="text-slate-400 text-sm italic mt-2">
+                          {philosopherExpressions[debateConfig.moderator.name] || "maintaining order"}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          {/* Voice Control */}
-          <div className="text-center mb-6">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+              {/* Philosophers below with Enhanced Design */}
+              <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
+                {debateConfig.philosophers.map((philosopher, index) => {
+                  const isActive = currentSpeaker === 'philosopher1' && index === 0 || currentSpeaker === 'philosopher2' && index === 1;
+                  const colorMap = {
+                    emerald: 'emerald-400',
+                    red: 'red-400', 
+                    blue: 'blue-400',
+                    purple: 'purple-400'
+                  };
+                  const borderColor = colorMap[philosopher.color as keyof typeof colorMap] || 'blue-400';
+                  
+                  return (
+                    <div key={philosopher.name} className={`bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm rounded-3xl p-6 border-2 transition-all duration-500 shadow-xl ${
+                      isActive 
+                        ? `border-${borderColor}/60 shadow-${philosopher.color}-500/20 ring-4 ring-${borderColor}/20 scale-105` 
+                        : 'border-slate-600/40 hover:border-slate-500/50'
+                    }`}>
+                      <div className="flex flex-col items-center text-center">
+                        <div className="text-4xl mb-3">
+                          {philosopher.color === 'emerald' && '💭'}
+                          {philosopher.color === 'red' && '🔥'}
+                          {philosopher.color === 'blue' && '🧠'}
+                          {philosopher.color === 'purple' && '⚡'}
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="font-bold text-white text-xl font-serif">{philosopher.name}</h4>
+                          <Badge className={`${
+                            isActive 
+                              ? `bg-${philosopher.color}-500/30 text-${philosopher.color}-200 border-${philosopher.color}-400/50` 
+                              : 'bg-slate-600/30 text-slate-300 border-slate-500/30'
+                          } text-sm px-3 py-1`}>
+                            {philosopher.subtitle}
+                          </Badge>
+                          {isActive && (
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs animate-pulse">
+                              SPEAKING
+                            </Badge>
+                          )}
+                          {!isActive && (
+                            <p className="text-slate-400 text-sm italic mt-2">
+                              {philosopherExpressions[philosopher.name] || "pondering existence"}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Fixed Height Speech Container */}
+          <div className="mb-8">
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="text-3xl">
+                  {activeParticipant?.color === 'emerald' && '💭'}
+                  {activeParticipant?.color === 'red' && '🔥'}
+                  {activeParticipant?.color === 'blue' && '🧠'}
+                  {activeParticipant?.color === 'purple' && '⚡'}
+                  {activeParticipant?.color === 'amber' && '⚖️'}
+                  {currentSpeaker === 'moderator' && '⚖️'}
+                </div>
+                <h2 className="text-2xl font-bold text-white font-serif">
+                  {activeParticipant?.name.toUpperCase() || 'MODERATOR'}
+                </h2>
+              </div>
+              <Badge variant="secondary" className="bg-slate-700 text-slate-300">
+                {activeParticipant?.subtitle || 'The Moderator'}
+              </Badge>
+            </div>
+            
+            {/* Fixed Height Speech Container - 300px minimum height */}
+            <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 mb-8 h-80 flex items-center justify-center">
+              <div className="text-center max-w-3xl">
+                <p className="text-slate-200 text-xl leading-relaxed italic mb-6">
+                  "{currentStatement}"
+                </p>
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-slate-400">Speaking...</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Voice Control Button */}
+            <div className="text-center mb-8">
               <Button 
                 onClick={handleMuteToggle} 
                 size="lg" 
                 disabled={!isConnected}
-                className={`font-bold px-8 py-4 rounded-xl transition-all duration-200 ${
+                className={`relative font-bold text-xl px-12 py-6 rounded-2xl backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg ${
                   isUserMuted 
-                    ? 'bg-white/10 hover:bg-white/20 border border-white/20 text-white' 
-                    : 'bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-300'
+                    ? 'bg-gradient-to-r from-red-600/20 via-red-500/20 to-orange-500/20 hover:from-red-600/30 hover:via-red-500/30 hover:to-orange-500/30 border border-red-500/30 hover:border-red-400/40 text-red-300 hover:text-red-200 hover:shadow-red-500/10' 
+                    : 'bg-gradient-to-r from-green-600/20 via-green-500/20 to-emerald-500/20 hover:from-green-600/30 hover:via-green-500/30 hover:to-emerald-500/30 border border-green-500/30 hover:border-green-400/40 text-green-300 hover:text-green-200 hover:shadow-green-500/10'
                 } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {isUserMuted ? (
-                  <>
-                    <MicOff className="h-5 w-5 mr-2" />
-                    UNMUTE TO SPEAK
-                  </>
-                ) : (
-                  <>
-                    <Mic className="h-5 w-5 mr-2 animate-pulse" />
-                    YOU'RE LIVE
-                  </>
-                )}
+                <div className={`absolute inset-0 rounded-2xl blur-sm ${
+                  isUserMuted ? 'bg-gradient-to-r from-red-600/10 to-orange-500/10' : 'bg-gradient-to-r from-green-600/10 to-emerald-500/10'
+                }`}></div>
+                <div className="relative flex items-center">
+                  {isUserMuted ? (
+                    <>
+                      <MicOff className="h-6 w-6 mr-3 animate-pulse" />
+                      UNMUTE TO SPEAK
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-6 w-6 mr-3 animate-pulse" />
+                      YOU'RE LIVE - SPEAK NOW
+                    </>
+                  )}
+                </div>
               </Button>
-            </motion.div>
-            <motion.p 
-              className="text-sm mt-2 opacity-80"
-              animate={{ color: currentState.textColor }}
-              transition={transition}
-            >
-              {error 
-                ? 'Setup required: Configure your Vapi keys' 
-                : !isConnected 
-                  ? 'Connecting...' 
-                  : isUserMuted 
-                    ? 'Click to join the debate' 
-                    : 'You can now speak to the philosophers'
-              }
-            </motion.p>
+              <p className="text-slate-400 text-sm mt-3">
+                {error 
+                  ? 'Setup required: Configure your Vapi Public Key and Assistant ID' 
+                  : !isConnected 
+                    ? 'Connecting to voice debate...' 
+                    : isUserMuted 
+                      ? 'Click to join the debate with your voice' 
+                      : 'You can now speak directly to the philosophers'
+                }
+              </p>
+            </div>
           </div>
 
-          {/* Quick Challenges */}
-          <motion.div
-            className="mb-6 p-4 rounded-xl border border-white/10 backdrop-blur-sm"
-            animate={{ 
-              backgroundColor: `${currentState.accentColor}10`,
-              borderColor: `${currentState.accentColor}20`
-            }}
-            transition={transition}
-          >
-            <motion.h3 
-              className="text-sm font-bold mb-3 text-center"
-              animate={{ color: currentState.textColor }}
-              transition={transition}
-            >
-              💭 Quick Challenges
-            </motion.h3>
-            <div className="grid grid-cols-2 gap-2">
-              {quickChallenges.map((challenge, index) => (
-                <motion.button
-                  key={index}
-                  onClick={() => handleQuickChallenge(challenge)}
-                  disabled={!isConnected}
-                  className="p-3 rounded-lg bg-white/5 hover:bg-white/10 text-sm transition-all duration-200 border border-white/10"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  animate={{ color: currentState.textColor }}
-                  transition={transition}
-                >
-                  "{challenge}"
-                </motion.button>
-              ))}
+          {/* Expandable Live Transcript */}
+          {transcript.length > 0 && (
+            <div className="mb-8">
+              <div className="text-center mb-6">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <h3 className="text-2xl font-bold text-white font-serif">LIVE DEBATE TRANSCRIPT</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsTranscriptExpanded(!isTranscriptExpanded)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    {isTranscriptExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <Badge variant="secondary" className="bg-slate-700 text-slate-300">
+                  Real-time conversation
+                </Badge>
+              </div>
+              
+              <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/30">
+                <ScrollArea className={`${isTranscriptExpanded ? 'h-96' : 'h-48'} transition-all duration-300`}>
+                  <div className="space-y-4 pr-4">
+                    {transcript.map((message, index) => (
+                      <div key={index} className="border-l-2 border-slate-600/30 pl-4">
+                        <p className="text-slate-200 leading-relaxed">
+                          {message}
+                        </p>
+                      </div>
+                    ))}
+                    <div ref={transcriptEndRef} />
+                  </div>
+                </ScrollArea>
+                
+                <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-slate-700/30">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-slate-400 text-sm">Live conversation in progress...</span>
+                </div>
+              </div>
             </div>
-          </motion.div>
+          )}
 
-          {/* Live Transcript */}
-          <motion.div
-            className="p-4 rounded-xl border border-white/10 backdrop-blur-sm max-h-48"
-            animate={{ 
-              backgroundColor: `${currentState.accentColor}10`,
-              borderColor: `${currentState.accentColor}20`
-            }}
-            transition={transition}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <motion.h3 
-                className="text-sm font-bold"
-                animate={{ color: currentState.textColor }}
-                transition={transition}
-              >
-                LIVE TRANSCRIPT
-              </motion.h3>
-              <motion.span 
-                className="text-xs"
-                animate={{ color: currentState.accentColor }}
-                transition={transition}
-              >
-                {getCurrentSpeakerName()}
-              </motion.span>
+          {/* Enhanced Socratic Challenge Toolkit */}
+          <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6 border border-slate-700/30">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-bold text-white mb-2">💭 Socratic Challenge Toolkit</h3>
+              <p className="text-slate-400 text-sm">Quick challenges to get you started</p>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="flex gap-1">
+                  {socraticChallenges.map((_, index) => (
+                    <div 
+                      key={index} 
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === currentChallengeSet ? 'bg-blue-400' : 'bg-slate-600'
+                      }`} 
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
             
-            <ScrollArea className="h-32">
-              <div className="space-y-2 pr-2">
-                {transcript.length === 0 ? (
-                  <motion.div 
-                    className="flex items-center justify-center h-24 text-sm opacity-60"
-                    animate={{ color: currentState.textColor }}
-                    transition={transition}
+            <div className="relative">
+              <div className="grid md:grid-cols-2 gap-3 mb-4">
+                {socraticChallenges[currentChallengeSet].map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleQuickChallenge(suggestion)}
+                    disabled={!isConnected}
+                    className={`p-4 rounded-xl bg-slate-700/30 hover:bg-slate-600/40 text-slate-300 hover:text-white text-sm transition-all duration-200 hover:scale-105 border border-slate-600/20 hover:border-slate-500/40 backdrop-blur-sm hover:shadow-lg ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    Waiting for conversation to begin...
-                  </motion.div>
-                ) : (
-                  transcript.map((message, index) => (
-                    <motion.div 
-                      key={index} 
-                      className="border-l-2 pl-3"
-                      animate={{ borderColor: `${currentState.accentColor}30` }}
-                      transition={transition}
-                    >
-                      <motion.p
-                        className="text-sm leading-relaxed break-words"
-                        animate={{ color: currentState.textColor }}
-                        transition={transition}
-                      >
-                        {message}
-                      </motion.p>
-                    </motion.div>
-                  ))
-                )}
-                <div ref={transcriptEndRef} />
+                    "{suggestion}"
+                  </button>
+                ))}
               </div>
-            </ScrollArea>
-          </motion.div>
+              
+              <div className="flex justify-center gap-3">
+                <Button 
+                  onClick={prevChallengeSet} 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+                <Button 
+                  onClick={nextChallengeSet} 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-slate-400 hover:text-white hover:bg-slate-700/30 rounded-xl"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
