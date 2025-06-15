@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Square, Clock } from "lucide-react";
+import { ArrowLeft, Square, Clock, Zap } from "lucide-react";
 
 interface InterruptInterfaceProps {
   philosopher: string;
@@ -59,21 +59,29 @@ export const InterruptInterface = ({
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
-      <div className="px-6 py-4">
+      <div className="px-6 py-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Button variant="ghost" onClick={onBack} className="text-slate-300 hover:text-white">
+          <Button 
+            variant="ghost" 
+            onClick={onBack} 
+            className="text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-200"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Cancel
           </Button>
           
-          <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-red-400" />
-            <span className="text-white">Challenge Timer: </span>
-            <span className={`font-bold text-xl ${timeLeft <= 10 ? 'text-red-400 animate-pulse' : 'text-yellow-400'}`}>
+          <div className="flex items-center gap-3 bg-slate-800/30 backdrop-blur-sm rounded-2xl px-4 py-2 border border-slate-700/50">
+            <Clock className="h-4 w-4 text-orange-400" />
+            <span className="text-slate-300 text-sm font-medium">Challenge Timer:</span>
+            <div className={`font-bold text-lg px-3 py-1 rounded-lg ${
+              timeLeft <= 10 
+                ? 'text-red-400 bg-red-400/10 animate-pulse' 
+                : 'text-orange-400 bg-orange-400/10'
+            }`}>
               {timeLeft}s
-            </span>
+            </div>
           </div>
         </div>
       </div>
@@ -81,40 +89,63 @@ export const InterruptInterface = ({
       {/* Main Content */}
       <div className="px-6 pb-6">
         <div className="max-w-4xl mx-auto">
-          {/* Challenge Status */}
+          {/* Challenge Status - Modernized */}
           <div className="text-center mb-12">
-            <Badge className="bg-red-500 hover:bg-red-600 text-white animate-pulse text-lg px-6 py-3 mb-6">
-              🚨 SOCRATIC CHALLENGE ACTIVATED! 🚨
-            </Badge>
-            <h1 className="text-3xl font-bold text-white mb-4">
-              Challenging: <span className="text-yellow-400">{philosopher.toUpperCase()}</span>
+            <div className="relative mb-8">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 via-orange-500/20 to-red-500/20 rounded-3xl blur-xl"></div>
+              <div className="relative bg-gradient-to-r from-red-500/10 to-orange-500/10 backdrop-blur-sm border border-red-500/20 rounded-3xl px-8 py-6">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <Zap className="h-6 w-6 text-red-400 animate-pulse" />
+                  <span className="text-red-400 font-bold text-lg tracking-wide">SOCRATIC CHALLENGE ACTIVATED</span>
+                  <Zap className="h-6 w-6 text-red-400 animate-pulse" />
+                </div>
+                <div className="flex items-center justify-center gap-2 text-slate-300">
+                  <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium">LIVE CHALLENGE MODE</span>
+                  <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+            
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Challenging: <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">{philosopher.toUpperCase()}</span>
             </h1>
+            <p className="text-slate-400">Question their reasoning with Socratic precision</p>
           </div>
 
           {/* Voice Input Section */}
           <div className="mb-12">
             <div className="text-center mb-8">
-              <div className="w-40 h-40 mx-auto mb-8 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/30">
-                <ModernMicIcon className="h-20 w-20 text-white" />
+              <div className="relative w-48 h-48 mx-auto mb-8">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/30 to-orange-500/30 rounded-full blur-2xl animate-pulse"></div>
+                <div className="relative w-full h-full bg-gradient-to-br from-red-500/20 to-orange-500/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-red-500/30 shadow-2xl">
+                  <ModernMicIcon className="h-20 w-20 text-white drop-shadow-lg" />
+                </div>
               </div>
+              
               <h2 className="text-2xl font-bold text-white mb-4">YOU ARE SPEAKING</h2>
               {isRecording && (
-                <Badge className="bg-red-500 hover:bg-red-600 text-white">
-                  🔴 RECORDING YOUR CHALLENGE
-                </Badge>
+                <div className="inline-flex items-center gap-2 bg-red-500/10 backdrop-blur-sm border border-red-500/20 rounded-full px-4 py-2">
+                  <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                  <span className="text-red-300 text-sm font-medium">RECORDING YOUR CHALLENGE</span>
+                </div>
               )}
             </div>
             
             {/* Challenge Display */}
-            <div className="bg-slate-800/30 backdrop-blur-sm rounded-3xl p-8 mb-8 min-h-[200px] flex items-center justify-center">
+            <div className="bg-slate-800/20 backdrop-blur-sm rounded-3xl p-8 mb-8 min-h-[200px] flex items-center justify-center border border-slate-700/30">
               <div className="text-center">
                 <p className="text-slate-200 text-xl leading-relaxed italic mb-6 max-w-4xl">
                   "{sampleChallenge}"
                 </p>
                 {isRecording && (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
-                    <span className="text-slate-400">Listening for your challenge...</span>
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
+                    <span className="text-slate-400 font-medium">Listening for your challenge...</span>
                   </div>
                 )}
               </div>
@@ -124,14 +155,14 @@ export const InterruptInterface = ({
             <div className="flex justify-center gap-6">
               <Button 
                 onClick={handleFinishChallenge} 
-                className="bg-green-600/20 hover:bg-green-500/30 border border-green-500/30 hover:border-green-400/50 text-green-300 hover:text-green-200 font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg"
+                className="bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 hover:border-green-400/50 text-green-300 hover:text-green-200 font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-green-500/10"
               >
                 <Square className="h-5 w-5 mr-2" />
                 Finish Challenge
               </Button>
               
               <Button 
-                className="bg-slate-800/50 hover:bg-slate-700/70 border border-slate-600/50 hover:border-slate-500/70 text-white font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105"
+                className="bg-slate-800/30 hover:bg-slate-700/50 border border-slate-600/30 hover:border-slate-500/50 text-slate-300 hover:text-white font-medium px-8 py-4 rounded-xl text-base backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:shadow-lg"
               >
                 🔄 Continue Speaking
               </Button>
