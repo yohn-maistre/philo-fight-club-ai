@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,10 +20,43 @@ export const PhilosopherResponse = ({ philosopher, onContinue, onNewChallenge }:
       reaction: "(strokes beard thoughtfully)",
       quote: "My young friend, you ask an excellent question! Indeed, how can I speak of knowing nothing while claiming to know that I know nothing? Perhaps... perhaps even this claim should be examined. Are you suggesting that my ignorance itself might be an assumption? Tell me, what do you think it means to truly know something?",
       gesture: "*leans forward with genuine curiosity*"
+    },
+    Descartes: {
+      reaction: "(adjusts his coat and looks thoughtful)",
+      quote: "You challenge my method of doubt, but observe - even in your questioning, you demonstrate the very certainty I speak of! For you must exist to doubt, and you must think to question. The cogito is not a logical argument but an intuitive certainty that survives all doubt. Can you doubt that you are doubting right now?",
+      gesture: "*taps temple with finger*"
+    },
+    Spinoza: {
+      reaction: "(remains calm and composed)",
+      quote: "Your question reveals a misunderstanding of freedom itself. True freedom is not the absence of causation, but acting according to one's own nature rather than external compulsion. When we understand the causes that determine us, we achieve the highest form of freedom - that of the wise person who acts from knowledge rather than ignorance.",
+      gesture: "*spreads hands in a measured gesture*"
+    },
+    Kant: {
+      reaction: "(straightens his posture with precision)",
+      quote: "You raise a penetrating objection! But consider this: reason and experience are not opposed but must work together. Pure concepts without intuition are empty, but intuitions without concepts are blind. The mind actively structures experience through its categories - we do not passively receive knowledge but actively construct it!",
+      gesture: "*adjusts spectacles thoughtfully*"
+    },
+    Hume: {
+      reaction: "(chuckles softly with a knowing smile)",
+      quote: "Ah, you've touched upon the very heart of my skepticism! Indeed, how can I be certain even of my doubt? But this is precisely my point - custom and habit, not reason, guide most of our beliefs. I cannot prove causation exists, yet I cannot help but believe in it. We are slaves to our human nature, and philosophy must acknowledge its limits!",
+      gesture: "*shrugs with philosophical resignation*"
     }
   };
 
   const response = responses[philosopher as keyof typeof responses];
+
+  // Fallback for unknown philosophers
+  if (!response) {
+    console.error(`No response data found for philosopher: ${philosopher}`);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
+        <div className="max-w-4xl mx-auto text-center text-white">
+          <p>Error: Unknown philosopher "{philosopher}"</p>
+          <Button onClick={onContinue} className="mt-4">Continue</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
@@ -43,7 +75,12 @@ export const PhilosopherResponse = ({ philosopher, onContinue, onNewChallenge }:
         <div className="text-center mb-12">
           <div className="w-40 h-40 mx-auto mb-8 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-full flex items-center justify-center shadow-lg border border-blue-500/20 backdrop-blur-sm">
             <div className="text-5xl">
-              {philosopher === 'Nietzsche' ? '🔥' : '💭'}
+              {philosopher === 'Nietzsche' && '🔥'}
+              {philosopher === 'Socrates' && '💭'}
+              {philosopher === 'Descartes' && '🧠'}
+              {philosopher === 'Spinoza' && '⚡'}
+              {philosopher === 'Kant' && '🧠'}
+              {philosopher === 'Hume' && '⚡'}
             </div>
           </div>
           
