@@ -23,7 +23,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const [transcript, setTranscript] = useState<string[]>([]);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
 
-  // Vapi integration
+  // Vapi integration with improved message handling
   const { isConnected, isLoading, connect, disconnect, sendMessage } = useVapi({
     onConnect: () => {
       console.log('Connected to Vapi');
@@ -31,12 +31,18 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     },
     onDisconnect: () => {
       console.log('Disconnected from Vapi');
+      setTranscript(prev => [...prev, 'System: Disconnected from voice debate']);
     },
     onMessage: (message) => {
       console.log('Received message from Vapi:', message);
       if (message.transcript) {
-        setTranscript(prev => [...prev, `${message.transcript!.speaker}: ${message.transcript!.transcript}`]);
+        const speaker = message.transcript.speaker === 'user' ? 'You' : 'AI Philosopher';
+        setTranscript(prev => [...prev, `${speaker}: ${message.transcript!.transcript}`]);
       }
+    },
+    onError: (error) => {
+      console.error('Vapi error:', error);
+      setTranscript(prev => [...prev, `System: Error - ${error.message || 'Connection failed'}`]);
     }
   });
 
@@ -49,11 +55,13 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
         philosophers: [{
           name: "Socrates",
           color: "emerald",
-          subtitle: "The Questioner"
+          subtitle: "The Questioner",
+          assistantId: "YOUR_SOCRATES_ASSISTANT_ID" // Replace with actual ID
         }, {
           name: "Nietzsche",
           color: "red",
-          subtitle: "The Hammer"
+          subtitle: "The Hammer",
+          assistantId: "YOUR_NIETZSCHE_ASSISTANT_ID" // Replace with actual ID
         }],
         statements: {
           philosopher1: ["Before we can discuss whether morality is objective, shouldn't we first examine what we mean by 'morality' itself? For how can we—", "You speak of strength and weakness, but I confess I do not understand these terms. What makes one soul stronger than another? Is it not possible that—", "Perhaps you are right, but I wonder... if there are no universal moral truths, then how can we say that creating one's own values is better than accepting traditional ones? For to say it is 'better' seems to imply—"],
@@ -66,11 +74,13 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
         philosophers: [{
           name: "Descartes",
           color: "blue",
-          subtitle: "The Dualist"
+          subtitle: "The Dualist",
+          assistantId: "YOUR_DESCARTES_ASSISTANT_ID" // Replace with actual ID
         }, {
           name: "Spinoza",
           color: "purple",
-          subtitle: "The Determinist"
+          subtitle: "The Determinist",
+          assistantId: "YOUR_SPINOZA_ASSISTANT_ID" // Replace with actual ID
         }],
         statements: {
           philosopher1: ["I think, therefore I am - and in this thinking, I discover my freedom to doubt, to affirm, to deny. The mind is distinct from matter and—", "But surely you must see that the very act of reasoning demonstrates our freedom? When I choose to doubt or to believe, this choice itself—", "The will is infinite in scope, though the understanding is finite. This is why error occurs - when the will extends beyond what the understanding—"],
@@ -123,14 +133,23 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
 
   // Initialize Vapi connection when component mounts
   useEffect(() => {
-    // TODO: Replace with actual assistant ID from your Vapi dashboard
-    const assistantId = "your-assistant-id"; 
-    connect(assistantId);
+    // Get the current active philosopher's assistant ID
+    const activePhilosopher = currentSpeaker === 'philosopher1' ? debateConfig.philosophers[0] : debateConfig.philosophers[1];
+    const assistantId = activePhilosopher.assistantId;
+    
+    if (assistantId && assistantId !== "YOUR_SOCRATES_ASSISTANT_ID") { // Only connect if real ID is provided
+      connect(assistantId);
+    }
 
     return () => {
       disconnect();
     };
-  }, [connect, disconnect]);
+  }, [connect, disconnect, currentSpeaker, debateConfig]);
+
+  // Auto-scroll transcript to bottom
+  useEffect(() => {
+    transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [transcript]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
