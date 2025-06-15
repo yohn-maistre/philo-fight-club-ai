@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Mic, Square, Clock, Target, Zap } from "lucide-react";
+import { ArrowLeft, Square, Clock } from "lucide-react";
 
 interface InterruptInterfaceProps {
   philosopher: string;
@@ -18,7 +18,6 @@ export const InterruptInterface = ({
   const [isRecording, setIsRecording] = useState(true);
   const [timeLeft, setTimeLeft] = useState(30);
   const [challenge, setChallenge] = useState("");
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
 
   // Sample user challenge
   const sampleChallenge = `Wait, ${philosopher} - you say objective morality is for the weak, but aren't you making an objective claim about what strength means? How do you define 'strong' without some universal standard?`;
@@ -36,28 +35,28 @@ export const InterruptInterface = ({
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    // Simulate real-time analysis
-    if (isRecording) {
-      const analysisTimer = setTimeout(() => {
-        setAnalysisResult({
-          type: "LOGICAL CONTRADICTION",
-          difficulty: "HIGH",
-          impact: "May expose core weakness in position",
-          reactions: {
-            socrates: "nods approvingly...",
-            nietzsche: "eyes flash with interest..."
-          }
-        });
-      }, 3000);
-      return () => clearTimeout(analysisTimer);
-    }
-  }, [isRecording]);
-
   const handleFinishChallenge = () => {
     setIsRecording(false);
     onChallengeComplete(challenge || sampleChallenge);
   };
+
+  // Modern microphone SVG component
+  const ModernMicIcon = ({ className }: { className?: string }) => (
+    <svg 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+      <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+      <line x1="12" x2="12" y1="18" y2="22"/>
+      <line x1="8" x2="16" y1="22" y2="22"/>
+    </svg>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -83,22 +82,22 @@ export const InterruptInterface = ({
       <div className="px-6 pb-6">
         <div className="max-w-4xl mx-auto">
           {/* Challenge Status */}
-          <div className="text-center mb-8">
-            <Badge className="bg-red-500 hover:bg-red-600 text-white animate-pulse text-lg px-6 py-3 mb-4">
+          <div className="text-center mb-12">
+            <Badge className="bg-red-500 hover:bg-red-600 text-white animate-pulse text-lg px-6 py-3 mb-6">
               🚨 SOCRATIC CHALLENGE ACTIVATED! 🚨
             </Badge>
-            <h1 className="text-2xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold text-white mb-4">
               Challenging: <span className="text-yellow-400">{philosopher.toUpperCase()}</span>
             </h1>
           </div>
 
           {/* Voice Input Section */}
-          <div className="mb-8">
-            <div className="text-center mb-6">
-              <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/30">
-                <Mic className="h-16 w-16 text-white" />
+          <div className="mb-12">
+            <div className="text-center mb-8">
+              <div className="w-40 h-40 mx-auto mb-8 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-500/30">
+                <ModernMicIcon className="h-20 w-20 text-white" />
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">YOU ARE SPEAKING</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">YOU ARE SPEAKING</h2>
               {isRecording && (
                 <Badge className="bg-red-500 hover:bg-red-600 text-white">
                   🔴 RECORDING YOUR CHALLENGE
@@ -107,9 +106,9 @@ export const InterruptInterface = ({
             </div>
             
             {/* Challenge Display */}
-            <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-6 mb-6 min-h-[150px] flex items-center justify-center">
+            <div className="bg-slate-800/30 backdrop-blur-sm rounded-3xl p-8 mb-8 min-h-[200px] flex items-center justify-center">
               <div className="text-center">
-                <p className="text-slate-200 text-lg leading-relaxed italic mb-4 max-w-3xl">
+                <p className="text-slate-200 text-xl leading-relaxed italic mb-6 max-w-4xl">
                   "{sampleChallenge}"
                 </p>
                 {isRecording && (
@@ -122,10 +121,10 @@ export const InterruptInterface = ({
             </div>
             
             {/* Control Buttons */}
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-center gap-6">
               <Button 
                 onClick={handleFinishChallenge} 
-                className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-semibold px-8 py-4 rounded-xl"
+                className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-semibold px-10 py-6 rounded-2xl text-lg hover:transform hover:scale-105 transition-all shadow-lg"
               >
                 <Square className="h-5 w-5 mr-2" />
                 Finish Challenge
@@ -133,48 +132,12 @@ export const InterruptInterface = ({
               
               <Button 
                 variant="outline" 
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white px-8 py-4 rounded-xl"
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white px-10 py-6 rounded-2xl text-lg hover:transform hover:scale-105 transition-all"
               >
                 🔄 Continue Speaking
               </Button>
             </div>
           </div>
-
-          {/* Real-time Analysis */}
-          {analysisResult && (
-            <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Zap className="h-5 w-5 text-yellow-400" />
-                <h3 className="text-lg font-bold text-white">CHALLENGE ANALYSIS (Real-time AI):</h3>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4 text-yellow-400" />
-                    <span className="text-slate-300">Type: </span>
-                    <Badge className="bg-yellow-600 text-white">{analysisResult.type}</Badge>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4 text-yellow-400" />
-                    <span className="text-slate-300">Difficulty: </span>
-                    <Badge className="bg-red-600 text-white">{analysisResult.difficulty}</Badge>
-                  </div>
-                </div>
-                
-                <div className="bg-slate-900/30 rounded-xl p-4">
-                  <p className="text-slate-300 text-sm mb-2">💭 Socrates {analysisResult.reactions.socrates}</p>
-                  <p className="text-slate-300 text-sm">🔥 Nietzsche {analysisResult.reactions.nietzsche}</p>
-                </div>
-              </div>
-              
-              <div className="mt-4 p-4 bg-gradient-to-r from-yellow-600/10 to-yellow-500/10 rounded-xl border border-yellow-500/20">
-                <span className="text-yellow-400 font-semibold">Potential Impact: </span>
-                <span className="text-slate-300">{analysisResult.impact}</span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
