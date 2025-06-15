@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +94,7 @@ export const DebateArena = ({
 
   const debateConfig = getDebateConfig(debateId);
 
-  // Update expressions every 3-5 seconds
+  // Update expressions every 8-12 seconds
   useEffect(() => {
     const updateExpressions = () => {
       const newExpressions: {[key: string]: string} = {};
@@ -107,10 +108,10 @@ export const DebateArena = ({
     // Initial expressions
     updateExpressions();
 
-    // Update expressions every 3-5 seconds
+    // Update expressions every 8-12 seconds
     const interval = setInterval(() => {
       updateExpressions();
-    }, Math.random() * 2000 + 3000); // 3-5 seconds
+    }, Math.random() * 4000 + 8000); // 8-12 seconds
 
     return () => clearInterval(interval);
   }, [debateConfig.philosophers, absurdExpressions]);
