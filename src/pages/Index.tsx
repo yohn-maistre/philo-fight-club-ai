@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { HeroSection } from "@/components/HeroSection";
 import { BattleCard } from "@/components/BattleCard";
@@ -324,19 +325,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="relative">
-        <HeroSection onEnterArena={handleEnterArena} />
-        
-        {/* Philosophy Fight Club Marquee - moved up directly below hero */}
-        <div className="absolute bottom-0 left-0 right-0 border-t border-b border-slate-700/50">
-          <MarqueeAnimation
-            direction="left"
-            baseVelocity={-2}
-            className="bg-yellow-400 text-slate-900 py-4 text-2xl md:text-4xl font-serif tracking-wide font-bold"
-          >
-            The first rule of Philosophy Fight Club is: you MUST talk about Philosophy Fight Club
-          </MarqueeAnimation>
-        </div>
+      <HeroSection onEnterArena={handleEnterArena} />
+      
+      {/* Philosophy Fight Club Marquee */}
+      <div className="py-8 border-t border-b border-slate-700/50">
+        <MarqueeAnimation
+          direction="left"
+          baseVelocity={-2}
+          className="bg-yellow-400 text-slate-900 py-4 text-2xl md:text-4xl font-serif tracking-wide font-bold"
+        >
+          The first rule of Philosophy Fight Club is: you MUST talk about Philosophy Fight Club
+        </MarqueeAnimation>
       </div>
     </div>
   );
