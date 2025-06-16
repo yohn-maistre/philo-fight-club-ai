@@ -44,6 +44,7 @@ export const useVapi = (options: UseVapiOptions) => {
       setError(errorMsg);
       setHasTriedConnection(true);
       options.onError?.(new Error(errorMsg));
+      console.error("[Vapi Debug] Public key missing or invalid.");
       return;
     }
 
@@ -51,21 +52,47 @@ export const useVapi = (options: UseVapiOptions) => {
     setError(null);
     setHasTriedConnection(true);
 
+    // Pre-connection mic test and device enumeration
+    try {
+      console.log("[Vapi Debug] Testing microphone access with getUserMedia...");
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log("[Vapi Debug] Microphone access granted.");
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const audioInputs = devices.filter(d => d.kind === 'audioinput');
+      console.log(`[Vapi Debug] Audio input devices:`, audioInputs);
+      if (audioInputs.length === 0) {
+        throw new Error("No audio input devices found.");
+      }
+    } catch (err) {
+      const errorMsg = "Microphone access failed: " + (err instanceof Error ? err.message : String(err));
+      setError(errorMsg);
+      setIsLoading(false);
+      setIsConnected(false);
+      setIsSpeaking(false);
+      options.onError?.(err instanceof Error ? err : new Error(String(err)));
+      console.error("[Vapi Debug] Mic test failed:", err);
+      return;
+    }
+
     try {
       const vapi = new Vapi(vapiPublicKey);
+      console.log("[Vapi Debug] Vapi instance created.");
 
       vapi.on('speech-start', () => {
         setIsSpeaking(true);
         options.onSpeechStart?.();
+        console.log('[Vapi Debug] speech-start event');
       });
       vapi.on('speech-end', () => {
         setIsSpeaking(false);
         options.onSpeechEnd?.();
+        console.log('[Vapi Debug] speech-end event');
       });
       vapi.on('call-start', () => {
         setIsConnected(true);
         setIsLoading(false);
         options.onConnect?.();
+        console.log('[Vapi Debug] call-start event');
       });
       vapi.on('call-end', () => {
         setIsConnected(false);
@@ -73,10 +100,12 @@ export const useVapi = (options: UseVapiOptions) => {
         setVapiInstance(null);
         setVolumeLevel(0);
         options.onDisconnect?.();
+        console.log('[Vapi Debug] call-end event');
       });
       vapi.on('volume-level', (volume) => {
         setVolumeLevel(volume);
         options.onVolumeLevel?.(volume);
+        console.log('[Vapi Debug] volume-level event', volume);
       });
       vapi.on('message', (message) => {
         // Detect transfer instruction
@@ -86,21 +115,33 @@ export const useVapi = (options: UseVapiOptions) => {
           if (transferMatch && options.onTransfer) {
             const assistantName = transferMatch[1];
             options.onTransfer(assistantName);
+            console.log('[Vapi Debug] Transfer detected to', assistantName);
           }
         }
         options.onMessage?.(message);
+        console.log('[Vapi Debug] message event', message);
       });
-      vapi.on('error', (error: Error) => {
+      vapi.on('error', (error) => {
         setError(error.message || 'An error occurred');
         setIsLoading(false);
         setIsConnected(false);
         setIsSpeaking(false);
         options.onError?.(error);
+        console.error('[Vapi Debug] error event', error);
       });
 
+      // WASM/krisp processor errors are usually logged by the browser, but we can add a global error handler
+      window.addEventListener('error', (event) => {
+        if (event.message && event.message.includes('krisp')) {
+          console.error('[Vapi Debug] WASM/Krisp error:', event.message);
+        }
+      });
+
+      console.log(`[Vapi Debug] Starting Vapi with assistantId: ${assistantId}`);
       await vapi.start(assistantId);
       setCurrentAssistantId(assistantId);
       setVapiInstance(vapi);
+      console.log('[Vapi Debug] Vapi started successfully.');
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to connect to Vapi';
       setError(errorMsg);
@@ -108,6 +149,7 @@ export const useVapi = (options: UseVapiOptions) => {
       setIsConnected(false);
       setIsSpeaking(false);
       options.onError?.(err instanceof Error ? err : new Error(String(err)));
+      console.error('[Vapi Debug] Vapi connection failed:', err);
     }
   }, [isConnected, isLoading, hasTriedConnection, options, vapiPublicKey]);
 
