@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -42,7 +42,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   // Helper to get assistant index by name
   const getAssistantIndexByName = (name: string) => {
     if (!squadConfig) return -1;
-    return squadConfig.members.findIndex(m => m.assistant.name.toLowerCase() === name.toLowerCase());
+    return squadConfig.members.findIndex(m => m.assistantId.toLowerCase().includes(name.toLowerCase()));
   };
 
   // Vapi integration with improved message handling
@@ -106,14 +106,14 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
       const nextIndex = getAssistantIndexByName(assistantName);
       if (nextIndex !== -1 && nextIndex !== currentAssistantIndex) {
         setCurrentAssistantIndex(nextIndex);
-        switchAssistant(squadConfig.members[nextIndex].assistant);
+        switchAssistant(squadConfig.members[nextIndex].assistantId);
         setTranscript(prev => [...prev, `System: Transferring to ${assistantName}...`]);
       }
     }
   });
 
   // Get debate config based on ID
-  const getDebateConfig = (id: string) => {
+  const debateConfig = useMemo(() => {
     const configs = {
       "morality-debate": {
         title: "The Morality Clash",
@@ -170,10 +170,8 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
         }
       }
     };
-    return configs[id as keyof typeof configs] || configs["morality-debate"];
-  };
-
-  const debateConfig = getDebateConfig(debateId);
+    return configs[debateId as keyof typeof configs] || configs["morality-debate"];
+  }, [debateId]);
 
   // Update expressions every 3-5 seconds and send background messages
   useEffect(() => {
@@ -194,7 +192,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     }, Math.random() * 2000 + 3000);
 
     return () => clearInterval(interval);
-  }, [debateConfig, sendMessage]);
+  }, [debateConfig]);
 
   // Timer effect
   useEffect(() => {
@@ -207,8 +205,8 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   // Only connect after mic permission is granted
   useEffect(() => {
     if (micPermissionGranted && squadConfig && !hasTriedConnection) {
-      console.log('Connecting to Vapi with first assistant:', squadConfig.members[0].assistant);
-      connect(squadConfig.members[0].assistant);
+      console.log('Connecting to Vapi with first assistant:', squadConfig.members[0].assistantId);
+      connect(squadConfig.members[0].assistantId);
     }
   }, [micPermissionGranted, squadConfig, hasTriedConnection, connect]);
 
@@ -228,7 +226,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const retryConnection = useCallback(() => {
     if (squadConfig) {
       console.log('Retrying Vapi connection');
-      connect(squadConfig.members[0].assistant);
+      connect(squadConfig.members[0].assistantId);
     }
   }, [squadConfig, connect]);
 

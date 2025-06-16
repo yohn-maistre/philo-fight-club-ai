@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import Vapi from '@vapi-ai/web';
-import { SquadAssistantConfig } from '@/config/squadConfigs';
 
 // Types for Vapi integration
 interface VapiMessage {
@@ -33,11 +32,11 @@ export const useVapi = (options: UseVapiOptions) => {
   const [volumeLevel, setVolumeLevel] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [hasTriedConnection, setHasTriedConnection] = useState(false);
-  const [currentAssistant, setCurrentAssistant] = useState<SquadAssistantConfig | null>(null);
+  const [currentAssistantId, setCurrentAssistantId] = useState<string | null>(null);
 
   const vapiPublicKey = import.meta.env.VITE_VAPI_PUBLIC_KEY;
 
-  const connect = useCallback(async (assistantConfig: SquadAssistantConfig) => {
+  const connect = useCallback(async (assistantId: string) => {
     if (isConnected || isLoading || hasTriedConnection) return;
 
     if (!vapiPublicKey || vapiPublicKey === "YOUR_VAPI_PUBLIC_KEY" || vapiPublicKey === undefined) {
@@ -99,8 +98,8 @@ export const useVapi = (options: UseVapiOptions) => {
         options.onError?.(error);
       });
 
-      await vapi.start(assistantConfig);
-      setCurrentAssistant(assistantConfig);
+      await vapi.start(assistantId);
+      setCurrentAssistantId(assistantId);
       setVapiInstance(vapi);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to connect to Vapi';
@@ -122,7 +121,7 @@ export const useVapi = (options: UseVapiOptions) => {
       setVolumeLevel(0);
       setIsMuted(false);
       setHasTriedConnection(false);
-      setCurrentAssistant(null);
+      setCurrentAssistantId(null);
       options.onDisconnect?.();
     } catch (err) { /* ignore */ }
   }, [vapiInstance, options]);
@@ -156,7 +155,7 @@ export const useVapi = (options: UseVapiOptions) => {
     } catch (err) { /* ignore */ }
   }, [isConnected, vapiInstance]);
 
-  const switchAssistant = useCallback(async (assistantConfig: SquadAssistantConfig) => {
+  const switchAssistant = useCallback(async (assistantId: string) => {
     if (vapiInstance) {
       await vapiInstance.stop();
     }
@@ -166,9 +165,9 @@ export const useVapi = (options: UseVapiOptions) => {
     setVolumeLevel(0);
     setIsMuted(false);
     setHasTriedConnection(false);
-    setCurrentAssistant(null);
+    setCurrentAssistantId(null);
     setTimeout(() => {
-      connect(assistantConfig);
+      connect(assistantId);
     }, 500);
   }, [vapiInstance, connect]);
 
@@ -194,6 +193,6 @@ export const useVapi = (options: UseVapiOptions) => {
     mute,
     unmute,
     switchAssistant,
-    currentAssistant
+    currentAssistantId
   };
 };
