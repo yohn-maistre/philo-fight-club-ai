@@ -7,17 +7,20 @@ interface LoadingScreenProps {
   isError?: boolean;
   onRetry?: () => void;
   onMicPermissionGranted?: () => void;
+  onMicPermissionDenied?: () => void;
 }
 
 export const LoadingScreen = ({ 
   message = "Preparing the philosophical arena...", 
   isError = false,
   onRetry,
-  onMicPermissionGranted
+  onMicPermissionGranted,
+  onMicPermissionDenied
 }: LoadingScreenProps) => {
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const [hasShownDebugInfo, setHasShownDebugInfo] = useState(false);
   const [micChecked, setMicChecked] = useState(false);
+  const [micDenied, setMicDenied] = useState(false);
 
   useEffect(() => {
     if (isError && !hasShownDebugInfo) {
@@ -69,15 +72,17 @@ export const LoadingScreen = ({
 
   useEffect(() => {
     // Only check mic permission if not error and not already checked
-    if (!isError && !micChecked && onMicPermissionGranted) {
+    if (!isError && !micChecked && (onMicPermissionGranted || onMicPermissionDenied)) {
       setMicChecked(true);
       (async () => {
-        // Permissions API
         let granted = false;
+        let denied = false;
         try {
           const perm = await navigator.permissions.query({ name: 'microphone' as PermissionName });
           if (perm.state === 'granted') {
             granted = true;
+          } else if (perm.state === 'denied') {
+            denied = true;
           } else if (perm.state === 'prompt') {
             try {
               await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -85,12 +90,15 @@ export const LoadingScreen = ({
             } catch {/* ignore */}
           }
         } catch {/* ignore */}
-        if (granted) {
+        if (granted && onMicPermissionGranted) {
           onMicPermissionGranted();
+        } else if (denied && onMicPermissionDenied) {
+          setMicDenied(true);
+          onMicPermissionDenied();
         }
       })();
     }
-  }, [isError, micChecked, onMicPermissionGranted]);
+  }, [isError, micChecked, onMicPermissionGranted, onMicPermissionDenied]);
 
   // Reset debug info when error state changes
   useEffect(() => {
@@ -157,9 +165,17 @@ export const LoadingScreen = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className={`${isError ? 'text-red-400' : 'text-slate-400'} text-sm leading-relaxed px-4`}
+          className={`${isError || micDenied ? 'text-red-400' : 'text-slate-400'} text-sm leading-relaxed px-4`}
         >
-          {isError ? (
+          {micDenied ? (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 mb-4">
+              <div className="text-3xl mb-3">🎤</div>
+              <h3 className="text-red-300 font-medium mb-3 text-lg">Microphone Access Denied</h3>
+              <p className="text-red-400 text-sm mb-4">
+                Microphone access is required to join the debate. Please enable microphone permissions in your browser settings and reload the page.
+              </p>
+            </div>
+          ) : isError ? (
             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 mb-4">
               <div className="text-3xl mb-3">⚠️</div>
               <h3 className="text-red-300 font-medium mb-3 text-lg">Connection Error</h3>

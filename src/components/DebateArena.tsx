@@ -34,6 +34,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const { toast } = useToast();
   const [currentAssistantIndex, setCurrentAssistantIndex] = useState(0);
   const [micPermissionGranted, setMicPermissionGranted] = useState(false);
+  const [micPermissionDenied, setMicPermissionDenied] = useState(false);
 
   // Get squad configuration
   const squadConfig = getSquadConfig(debateId);
@@ -232,12 +233,20 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   }, [squadConfig, connect]);
 
   // Show loading screen with better error handling
+  if (micPermissionDenied) {
+    return <LoadingScreen 
+      message={"Microphone access is required to join the debate. Please enable microphone permissions in your browser settings and reload the page."}
+      isError={true}
+      onMicPermissionDenied={() => setMicPermissionDenied(true)}
+    />;
+  }
   if (!micPermissionGranted || !hasTriedConnection || (vapiLoading && !isConnected && !error)) {
     return <LoadingScreen 
       message={error ? error : "Connecting to the philosophical arena..."} 
       isError={!!error}
       onRetry={error ? retryConnection : undefined}
       onMicPermissionGranted={() => setMicPermissionGranted(true)}
+      onMicPermissionDenied={() => setMicPermissionDenied(true)}
     />;
   }
 
