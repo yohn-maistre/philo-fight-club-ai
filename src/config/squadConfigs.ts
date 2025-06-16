@@ -1,43 +1,7 @@
-<<<<<<< HEAD
 export interface SquadConfig {
   name: string;
   members: Array<{
     assistant: SquadAssistantConfig;
-=======
-interface SquadConfig {
-  name: string;
-  members: Array<{
-    assistant: {
-      name: string;
-      model: {
-        model: string;
-        provider: string;
-        messages: Array<{
-          role: string;
-          content: string;
-        }>;
-        maxTokens: number;
-        temperature: number;
-      };
-      voice: {
-        voiceId: string;
-        provider: string;
-        fillerInjectionEnabled: boolean;
-        chunkPlan?: {
-          enabled: boolean;
-        };
-      };
-      transcriber: {
-        model: string;
-        language: string;
-        provider: string;
-      };
-      firstMessage: string;
-      firstMessageMode: string;
-      backchannelingEnabled: boolean;
-      backgroundDenoisingEnabled: boolean;
-    };
->>>>>>> 3843b9424daafef099c4019fb4f6cdb87b35ae4a
     assistantDestinations: Array<{
       type: string;
       assistantName: string;
@@ -51,23 +15,27 @@ export type SquadAssistantConfig = {
   name: string;
   model: {
     model: string;
-    provider: string;
+    provider: 'groq';
     messages: Array<{
-      role: string;
+      role: "system" | "user" | "assistant" | "tool" | "function";
       content: string;
     }>;
     maxTokens: number;
     temperature: number;
+    toolIds?: string[];
   };
   voice: {
     voiceId: string;
     provider: string;
     fillerInjectionEnabled: boolean;
+    chunkPlan?: {
+      enabled: boolean;
+    };
   };
   transcriber: {
-    model: string;
-    language: string;
-    provider: string;
+    model: 'nova-2';
+    language: 'en-US';
+    provider: 'deepgram';
   };
   firstMessage: string;
   firstMessageMode: string;
@@ -132,7 +100,7 @@ You are moderating a debate between Socrates and Nietzsche on the nature of mora
             },
             transcriber: {
               model: "nova-2",
-              language: "en",
+              language: "en-US",
               provider: "deepgram"
             },
             firstMessage: "",
@@ -202,7 +170,7 @@ You are in a philosophical debate with Nietzsche about morality. Use your method
             },
             transcriber: {
               model: "nova-2",
-              language: "en",
+              language: "en-US",
               provider: "deepgram"
             },
             firstMessage: "",
@@ -271,7 +239,7 @@ You are in a philosophical debate about morality. You believe morality is subjec
             },
             transcriber: {
               model: "nova-2",
-              language: "en",
+              language: "en-US",
               provider: "deepgram"
             },
             firstMessage: "",
@@ -327,7 +295,7 @@ You are moderating between Descartes and Spinoza on the question of human freedo
             },
             transcriber: {
               model: "nova-2",
-              language: "en",
+              language: "en-US",
               provider: "deepgram"
             },
             firstMessage: "",
@@ -383,7 +351,7 @@ Debate with the human about free will. Present your dualist view that the mind i
             },
             transcriber: {
               model: "nova-2",
-              language: "en",
+              language: "en-US",
               provider: "deepgram"
             },
             firstMessage: "",
@@ -439,7 +407,7 @@ Present the deterministic view that all things, including human actions, are det
             },
             transcriber: {
               model: "nova-2",
-              language: "en",
+              language: "en-US",
               provider: "deepgram"
             },
             firstMessage: "",
@@ -492,7 +460,7 @@ You are moderating between Kant and Hume on rationalism vs empiricism. After int
             },
             transcriber: {
               model: "nova-2",
-              language: "en",
+              language: "en-US",
               provider: "deepgram"
             },
             firstMessage: "",
@@ -548,7 +516,7 @@ Present your view that knowledge requires both experience and reason working tog
             },
             transcriber: {
               model: "nova-2",
-              language: "en",
+              language: "en-US",
               provider: "deepgram"
             },
             firstMessage: "",
@@ -604,7 +572,7 @@ Challenge rational certainties and argue that knowledge comes from experience, b
             },
             transcriber: {
               model: "nova-2",
-              language: "en",
+              language: "en-US",
               provider: "deepgram"
             },
             firstMessage: "",

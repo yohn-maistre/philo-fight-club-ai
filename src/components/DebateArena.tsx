@@ -37,7 +37,6 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   // Get squad configuration
   const squadConfig = getSquadConfig(debateId);
 
-<<<<<<< HEAD
   // Helper to get assistant index by name
   const getAssistantIndexByName = (name: string) => {
     if (!squadConfig) return -1;
@@ -57,22 +56,6 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     unmute,
     isMuted,
     switchAssistant
-=======
-  // Vapi integration with improved error handling
-  const { 
-    isConnected, 
-    isLoading: vapiLoading, 
-    error, 
-    hasTriedConnection,
-    currentSpeaker: vapiCurrentSpeaker,
-    connect, 
-    disconnect, 
-    sendMessage, 
-    sendBackgroundMessage,
-    mute, 
-    unmute, 
-    isMuted 
->>>>>>> 3843b9424daafef099c4019fb4f6cdb87b35ae4a
   } = useVapi({
     onConnect: () => {
       console.log('Successfully connected to Vapi debate system');
@@ -90,16 +73,8 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
       console.log('Debate message received:', message);
       if (message.transcript) {
         const speaker = message.transcript.speaker === 'user' ? 'You' : message.transcript.speaker || 'AI';
-<<<<<<< HEAD
-        setTranscript(prev => [...prev, `${speaker}: ${message.transcript!.transcript}`]);
-        // Update current speaker based on transcript
-=======
         const transcriptText = message.transcript.transcript;
-        
         setTranscript(prev => [...prev, `${speaker}: ${transcriptText}`]);
-        
-        // Update current speaker and statement for non-user messages
->>>>>>> 3843b9424daafef099c4019fb4f6cdb87b35ae4a
         if (message.transcript.speaker !== 'user') {
           setCurrentSpeakerName(message.transcript.speaker || 'AI');
           setCurrentStatement(transcriptText);
@@ -112,36 +87,12 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     onSpeechEnd: () => {
       console.log('Speech ended in debate arena');
     },
-    onSpeakerChange: (speaker) => {
-      console.log('Speaker changed to:', speaker);
-      setCurrentSpeakerName(speaker);
-      
-      // Send background message about other participants' expressions
-      const otherPhilosophers = Object.keys(philosopherExpressions).filter(name => 
-        name.toLowerCase() !== speaker.toLowerCase()
-      );
-      
-      if (otherPhilosophers.length > 0) {
-        const randomPhilosopher = otherPhilosophers[Math.floor(Math.random() * otherPhilosophers.length)];
-        const randomExpression = absurdExpressions[Math.floor(Math.random() * absurdExpressions.length)];
-        sendBackgroundMessage(`While ${speaker} speaks, ${randomPhilosopher} is ${randomExpression} in the background.`);
-      }
-    },
     onError: (error) => {
-<<<<<<< HEAD
-      console.error('Vapi error:', error);
-      if (!transcript.some(msg => msg.includes('Error -'))) {
-        setTranscript(prev => [...prev, `System: Error - ${error.message || 'Connection failed'}`]);
-=======
       console.error('Vapi debate error:', error);
       const errorMsg = `Debate Error: ${error?.message || 'Connection failed'}`;
-      
-      // Prevent duplicate error messages
       if (!transcript.some(msg => msg.includes(errorMsg))) {
         setTranscript(prev => [...prev, `System: ⚠️ ${errorMsg}`]);
->>>>>>> 3843b9424daafef099c4019fb4f6cdb87b35ae4a
       }
-      
       toast({
         title: "Debate Connection Error",
         description: error?.message || "Failed to connect to philosophical arena",
@@ -241,7 +192,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     }, Math.random() * 2000 + 3000);
 
     return () => clearInterval(interval);
-  }, [debateConfig, sendBackgroundMessage]);
+  }, [debateConfig, sendMessage]);
 
   // Timer effect
   useEffect(() => {
@@ -251,19 +202,11 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     return () => clearInterval(timer);
   }, []);
 
-<<<<<<< HEAD
   // On mount, start with the first assistant (moderator)
   useEffect(() => {
     if (squadConfig && !hasTriedConnection) {
       console.log('Connecting to Vapi with first assistant:', squadConfig.members[0].assistant);
       connect(squadConfig.members[0].assistant);
-=======
-  // Initialize Vapi connection with squad config - only once with better error handling
-  useEffect(() => {
-    if (squadConfig && !hasTriedConnection && !isConnected && !vapiLoading) {
-      console.log('Connecting to Vapi with squad config:', squadConfig);
-      connect({ squadConfig });
->>>>>>> 3843b9424daafef099c4019fb4f6cdb87b35ae4a
     }
   }, [squadConfig, hasTriedConnection, isConnected, vapiLoading, connect]);
 
@@ -283,7 +226,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const retryConnection = useCallback(() => {
     if (squadConfig) {
       console.log('Retrying Vapi connection');
-      connect({ squadConfig });
+      connect(squadConfig.members[0].assistant);
     }
   }, [squadConfig, connect]);
 
