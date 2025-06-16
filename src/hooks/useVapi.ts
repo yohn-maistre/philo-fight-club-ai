@@ -78,16 +78,7 @@ export const useVapi = (options: UseVapiOptions) => {
       const vapi = new Vapi(vapiPublicKey);
       console.log("[Vapi Debug] Vapi instance created.");
 
-      vapi.on('speech-start', () => {
-        setIsSpeaking(true);
-        options.onSpeechStart?.();
-        console.log('[Vapi Debug] speech-start event');
-      });
-      vapi.on('speech-end', () => {
-        setIsSpeaking(false);
-        options.onSpeechEnd?.();
-        console.log('[Vapi Debug] speech-end event');
-      });
+      // Minimal event listeners for debugging
       vapi.on('call-start', () => {
         setIsConnected(true);
         setIsLoading(false);
@@ -102,25 +93,6 @@ export const useVapi = (options: UseVapiOptions) => {
         options.onDisconnect?.();
         console.log('[Vapi Debug] call-end event');
       });
-      vapi.on('volume-level', (volume) => {
-        setVolumeLevel(volume);
-        options.onVolumeLevel?.(volume);
-        console.log('[Vapi Debug] volume-level event', volume);
-      });
-      vapi.on('message', (message) => {
-        // Detect transfer instruction
-        if (message.type === 'transcript' && message.transcript) {
-          const content = message.transcript.transcript;
-          const transferMatch = content.match(/trigger the transferCall tool with '([^']+)' Assistant/i);
-          if (transferMatch && options.onTransfer) {
-            const assistantName = transferMatch[1];
-            options.onTransfer(assistantName);
-            console.log('[Vapi Debug] Transfer detected to', assistantName);
-          }
-        }
-        options.onMessage?.(message);
-        console.log('[Vapi Debug] message event', message);
-      });
       vapi.on('error', (error) => {
         setError(error.message || 'An error occurred');
         setIsLoading(false);
@@ -129,13 +101,17 @@ export const useVapi = (options: UseVapiOptions) => {
         options.onError?.(error);
         console.error('[Vapi Debug] error event', error);
       });
-
-      // WASM/krisp processor errors are usually logged by the browser, but we can add a global error handler
-      window.addEventListener('error', (event) => {
-        if (event.message && event.message.includes('krisp')) {
-          console.error('[Vapi Debug] WASM/Krisp error:', event.message);
-        }
+      vapi.on('message', (message) => {
+        options.onMessage?.(message);
+        console.log('[Vapi Debug] message event', message);
       });
+
+      // Comment out all other event listeners and features for now
+      // vapi.on('speech-start', ...)
+      // vapi.on('speech-end', ...)
+      // vapi.on('volume-level', ...)
+      // vapi.on('transfer', ...)
+      // window.addEventListener('error', ...)
 
       console.log(`[Vapi Debug] Starting Vapi with assistantId: ${assistantId}`);
       await vapi.start(assistantId);
