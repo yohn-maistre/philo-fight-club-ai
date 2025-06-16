@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Spinner } from "@/components/ui/spinner";
 import { useState, useEffect } from "react";
@@ -7,15 +6,18 @@ interface LoadingScreenProps {
   message?: string;
   isError?: boolean;
   onRetry?: () => void;
+  onMicPermissionGranted?: () => void;
 }
 
 export const LoadingScreen = ({ 
   message = "Preparing the philosophical arena...", 
   isError = false,
-  onRetry
+  onRetry,
+  onMicPermissionGranted
 }: LoadingScreenProps) => {
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const [hasShownDebugInfo, setHasShownDebugInfo] = useState(false);
+  const [micChecked, setMicChecked] = useState(false);
 
   useEffect(() => {
     if (isError && !hasShownDebugInfo) {
@@ -64,6 +66,31 @@ export const LoadingScreen = ({
       setDebugInfo(info);
     }
   }, [isError, hasShownDebugInfo]);
+
+  useEffect(() => {
+    // Only check mic permission if not error and not already checked
+    if (!isError && !micChecked && onMicPermissionGranted) {
+      setMicChecked(true);
+      (async () => {
+        // Permissions API
+        let granted = false;
+        try {
+          const perm = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          if (perm.state === 'granted') {
+            granted = true;
+          } else if (perm.state === 'prompt') {
+            try {
+              await navigator.mediaDevices.getUserMedia({ audio: true });
+              granted = true;
+            } catch {/* ignore */}
+          }
+        } catch {/* ignore */}
+        if (granted) {
+          onMicPermissionGranted();
+        }
+      })();
+    }
+  }, [isError, micChecked, onMicPermissionGranted]);
 
   // Reset debug info when error state changes
   useEffect(() => {

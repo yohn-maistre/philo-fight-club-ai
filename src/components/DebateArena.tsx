@@ -33,6 +33,7 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [currentAssistantIndex, setCurrentAssistantIndex] = useState(0);
+  const [micPermissionGranted, setMicPermissionGranted] = useState(false);
 
   // Get squad configuration
   const squadConfig = getSquadConfig(debateId);
@@ -202,13 +203,13 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  // On mount, start with the first assistant (moderator)
+  // Only connect after mic permission is granted
   useEffect(() => {
-    if (squadConfig && !hasTriedConnection) {
+    if (micPermissionGranted && squadConfig && !hasTriedConnection) {
       console.log('Connecting to Vapi with first assistant:', squadConfig.members[0].assistant);
       connect(squadConfig.members[0].assistant);
     }
-  }, [squadConfig, hasTriedConnection, isConnected, vapiLoading, connect]);
+  }, [micPermissionGranted, squadConfig, hasTriedConnection, connect]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -231,11 +232,12 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   }, [squadConfig, connect]);
 
   // Show loading screen with better error handling
-  if (!hasTriedConnection || (vapiLoading && !isConnected && !error)) {
+  if (!micPermissionGranted || !hasTriedConnection || (vapiLoading && !isConnected && !error)) {
     return <LoadingScreen 
       message={error ? error : "Connecting to the philosophical arena..."} 
       isError={!!error}
       onRetry={error ? retryConnection : undefined}
+      onMicPermissionGranted={() => setMicPermissionGranted(true)}
     />;
   }
 
