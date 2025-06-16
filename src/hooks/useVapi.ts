@@ -1,6 +1,6 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import Vapi from '@vapi-ai/web';
+import { SquadAssistantConfig } from '@/config/squadConfigs';
 
 // Types for Vapi integration
 interface VapiMessage {
@@ -13,46 +13,9 @@ interface VapiMessage {
   content?: string;
 }
 
-interface VapiSquadMember {
-  assistantId?: string;
-  assistant?: {
-    name: string;
-    model: {
-      model: string;
-      provider: string;
-      messages?: Array<{
-        role: string;
-        content: string;
-      }>;
-      maxTokens?: number;
-      temperature?: number;
-    };
-    voice: {
-      voiceId: string;
-      provider: string;
-      fillerInjectionEnabled?: boolean;
-    };
-    transcriber?: {
-      model: string;
-      language: string;
-      provider: string;
-    };
-    firstMessage: string;
-    firstMessageMode: string;
-    backchannelingEnabled?: boolean;
-    backgroundDenoisingEnabled?: boolean;
-  };
-  assistantDestinations?: Array<{
-    type: string;
-    assistantName: string;
-    message: string;
-    description: string;
-  }>;
-}
-
 interface VapiSquadConfig {
   name: string;
-  members: VapiSquadMember[];
+  members: SquadAssistantConfig[];
 }
 
 interface UseVapiOptions {
@@ -66,6 +29,7 @@ interface UseVapiOptions {
   onSpeechStart?: () => void;
   onSpeechEnd?: () => void;
   onVolumeLevel?: (volume: number) => void;
+  onTransfer?: (assistantName: string) => void;
 }
 
 export const useVapi = (options: UseVapiOptions) => {
@@ -77,17 +41,11 @@ export const useVapi = (options: UseVapiOptions) => {
   const [volumeLevel, setVolumeLevel] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [hasTriedConnection, setHasTriedConnection] = useState(false);
+  const [currentAssistant, setCurrentAssistant] = useState<SquadAssistantConfig | null>(null);
 
   const vapiPublicKey = import.meta.env.VITE_VAPI_PUBLIC_KEY;
 
-  const connect = useCallback(async (callConfig: { 
-    assistantId?: string; 
-    squadId?: string; 
-    squadConfig?: VapiSquadConfig 
-  }) => {
-    const { assistantId, squadId, squadConfig } = callConfig;
-    
-    // Prevent multiple connection attempts
+  const connect = useCallback(async (assistantConfig: SquadAssistantConfig) => {
     if (isConnected || isLoading || hasTriedConnection) return;
 
     if (!vapiPublicKey || vapiPublicKey === "YOUR_VAPI_PUBLIC_KEY" || vapiPublicKey === undefined) {
@@ -143,6 +101,13 @@ export const useVapi = (options: UseVapiOptions) => {
         console.log('Received message:', message);
         
         if (message.type === 'transcript' && message.transcript) {
+          // Check for transfer phrase in transcript
+          const content = message.transcript.transcript;
+          const transferMatch = content.match(/trigger the transferCall tool with '([^']+)' Assistant/i);
+          if (transferMatch && options.onTransfer) {
+            const assistantName = transferMatch[1];
+            options.onTransfer(assistantName);
+          }
           options.onMessage?.({
             type: 'transcript',
             transcript: {
@@ -165,22 +130,11 @@ export const useVapi = (options: UseVapiOptions) => {
       });
 
       // Start the call with the correct Vapi SDK format
-      if (squadConfig) {
-        // For squads, pass the squad config directly to Vapi
-        console.log('Starting Vapi with squad config');
-        await vapi.start({
-          assistant: {
-            // Use the first member as the starting assistant
-            ...squadConfig.members[0].assistant
-          }
-        });
-      } else if (assistantId) {
-        await vapi.start(assistantId);
-      } else if (squadId) {
-        // For pre-created squads, use the squad ID
-        await vapi.start(squadId);
+      if (assistantConfig) {
+        await vapi.start(assistantConfig);
+        setCurrentAssistant(assistantConfig);
       } else {
-        const errorMsg = "No assistantId, squadId, or squadConfig provided to connect.";
+        const errorMsg = "No assistant config provided to connect.";
         setError(errorMsg);
         options.onError?.(new Error(errorMsg));
         setIsLoading(false);
@@ -259,6 +213,23 @@ export const useVapi = (options: UseVapiOptions) => {
     }
   }, [isConnected, vapiInstance]);
 
+  // Switch to a new assistant (stop current, start new)
+  const switchAssistant = useCallback(async (assistantConfig: SquadAssistantConfig) => {
+    if (vapiInstance) {
+      await vapiInstance.stop();
+    }
+    setIsConnected(false);
+    setIsSpeaking(false);
+    setVapiInstance(null);
+    setVolumeLevel(0);
+    setIsMuted(false);
+    setHasTriedConnection(false);
+    setCurrentAssistant(null);
+    setTimeout(() => {
+      connect(assistantConfig);
+    }, 500);
+  }, [vapiInstance, connect]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -280,6 +251,8 @@ export const useVapi = (options: UseVapiOptions) => {
     disconnect,
     sendMessage,
     mute,
-    unmute
+    unmute,
+    switchAssistant,
+    currentAssistant
   };
 };

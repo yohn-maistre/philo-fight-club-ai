@@ -1,34 +1,7 @@
-
-interface SquadConfig {
+export interface SquadConfig {
   name: string;
   members: Array<{
-    assistant: {
-      name: string;
-      model: {
-        model: string;
-        provider: string;
-        messages: Array<{
-          role: string;
-          content: string;
-        }>;
-        maxTokens: number;
-        temperature: number;
-      };
-      voice: {
-        voiceId: string;
-        provider: string;
-        fillerInjectionEnabled: boolean;
-      };
-      transcriber: {
-        model: string;
-        language: string;
-        provider: string;
-      };
-      firstMessage: string;
-      firstMessageMode: string;
-      backchannelingEnabled: boolean;
-      backgroundDenoisingEnabled: boolean;
-    };
+    assistant: SquadAssistantConfig;
     assistantDestinations: Array<{
       type: string;
       assistantName: string;
@@ -37,6 +10,34 @@ interface SquadConfig {
     }>;
   }>;
 }
+
+export type SquadAssistantConfig = {
+  name: string;
+  model: {
+    model: string;
+    provider: string;
+    messages: Array<{
+      role: string;
+      content: string;
+    }>;
+    maxTokens: number;
+    temperature: number;
+  };
+  voice: {
+    voiceId: string;
+    provider: string;
+    fillerInjectionEnabled: boolean;
+  };
+  transcriber: {
+    model: string;
+    language: string;
+    provider: string;
+  };
+  firstMessage: string;
+  firstMessageMode: string;
+  backchannelingEnabled: boolean;
+  backgroundDenoisingEnabled: boolean;
+};
 
 export const getSquadConfig = (debateId: string): SquadConfig | null => {
   const configs: Record<string, SquadConfig> = {

@@ -9,7 +9,7 @@ import { ArenaBackground } from "@/components/ArenaBackground";
 import { SpeakingPlatform } from "@/components/SpeakingPlatform";
 import { CircularParticipants } from "@/components/CircularParticipants";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { getSquadConfig } from "@/config/squadConfigs";
+import { getSquadConfig, SquadAssistantConfig } from "@/config/squadConfigs";
 
 interface DebateArenaProps {
   debateId: string;
@@ -32,22 +32,30 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
   const [currentSpeakerName, setCurrentSpeakerName] = useState<string>('Moderator');
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [currentAssistantIndex, setCurrentAssistantIndex] = useState(0);
 
   // Get squad configuration
   const squadConfig = getSquadConfig(debateId);
 
+  // Helper to get assistant index by name
+  const getAssistantIndexByName = (name: string) => {
+    if (!squadConfig) return -1;
+    return squadConfig.members.findIndex(m => m.assistant.name.toLowerCase() === name.toLowerCase());
+  };
+
   // Vapi integration with improved message handling
-  const { 
-    isConnected, 
-    isLoading: vapiLoading, 
-    error, 
+  const {
+    isConnected,
+    isLoading: vapiLoading,
+    error,
     hasTriedConnection,
-    connect, 
-    disconnect, 
-    sendMessage, 
-    mute, 
-    unmute, 
-    isMuted 
+    connect,
+    disconnect,
+    sendMessage,
+    mute,
+    unmute,
+    isMuted,
+    switchAssistant
   } = useVapi({
     onConnect: () => {
       console.log('Connected to Vapi');
@@ -66,7 +74,6 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
       if (message.transcript) {
         const speaker = message.transcript.speaker === 'user' ? 'You' : message.transcript.speaker || 'AI';
         setTranscript(prev => [...prev, `${speaker}: ${message.transcript!.transcript}`]);
-        
         // Update current speaker based on transcript
         if (message.transcript.speaker !== 'user') {
           setCurrentSpeakerName(message.transcript.speaker || 'AI');
@@ -82,7 +89,6 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     },
     onError: (error) => {
       console.error('Vapi error:', error);
-      // Only add error message once, not continuously
       if (!transcript.some(msg => msg.includes('Error -'))) {
         setTranscript(prev => [...prev, `System: Error - ${error.message || 'Connection failed'}`]);
       }
@@ -91,6 +97,15 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
         description: error.message || "Failed to connect to voice debate",
         variant: "destructive",
       });
+    },
+    onTransfer: (assistantName: string) => {
+      if (!squadConfig) return;
+      const nextIndex = getAssistantIndexByName(assistantName);
+      if (nextIndex !== -1 && nextIndex !== currentAssistantIndex) {
+        setCurrentAssistantIndex(nextIndex);
+        switchAssistant(squadConfig.members[nextIndex].assistant);
+        setTranscript(prev => [...prev, `System: Transferring to ${assistantName}...`]);
+      }
     }
   });
 
@@ -185,11 +200,11 @@ export const DebateArena = ({ debateId, onBack }: DebateArenaProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Initialize Vapi connection with squad config - only once
+  // On mount, start with the first assistant (moderator)
   useEffect(() => {
     if (squadConfig && !hasTriedConnection) {
-      console.log('Connecting to Vapi with squad config:', squadConfig);
-      connect({ squadConfig });
+      console.log('Connecting to Vapi with first assistant:', squadConfig.members[0].assistant);
+      connect(squadConfig.members[0].assistant);
     }
   }, [squadConfig, hasTriedConnection, connect]);
 
